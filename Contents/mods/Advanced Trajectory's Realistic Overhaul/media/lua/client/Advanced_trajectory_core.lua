@@ -112,7 +112,10 @@ function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
         end
     end
 
+    -- minimum distance from player to target
     local mindistance = 0
+
+    -- is target in bullet cell? mindistance = 1
     local minzb = {false,1}
     local minpr = {false,1}
 
@@ -120,9 +123,12 @@ function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
     -- zombie table
     -- what is mindistance?
     for sz,bz in pairs(zbtable) do
+
+        -- use euclidian distance to find distance between target and bullet
         mindistance = (postable[1] - sz:getX())^2 + (postable[2] - sz:getY())^2
         --print(mindistance)
         if  mindistance<=0.42*damage then
+            -- update minzb if mindistance is closer
             if mindistance < minzb[2] then
                 minzb = {sz,mindistance}
             end
@@ -191,6 +197,7 @@ function Advanced_trajectory.checkiswallordoor(square,angle,bulletPosition,playe
 
     --print("bulletPos: ",   bulletPosX, "  //  ", bulletPosY)
     --print("playerPos: ",   playerPosX , "  //  ", playerPosY)
+    --print("------------------------------------------------------------------")
 
     -- returns an array of objects in that square, for loop and filter it to get what you want
     local objects = square:getObjects()
@@ -1681,7 +1688,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
     local player=character
 
-    -- player position?
+    -- player position
     local offx = character:getX()
     local offy = character:getY()
     local offz = character:getZ()
@@ -1703,14 +1710,16 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     -- E (top right): -pi/2 (-90)
     -- S (bottom right corner): 0
     local dirc = player:getForwardDirection():getDirection()
+    local dircOg = player:getForwardDirection():getDirection()
 
     -- pi/250 = .7 degrees
-    -- aimnum can go up to 100
+    -- aimnum can go up to (77-9+40) 108 
+    -- max/min -+96 degrees, and even more when drunk (6*24+108 = 252 => 208 deg)
     local aimrate = Advanced_trajectory.aimnum * math.pi / 250
     
     -- NOTES: I'm assuming aimrate, which is affected by aimnum, determines how wide the bullets can spread.
     -- adding dirc (direction player is facing) will cause bullets to go towards the direction of where player is looking
-    dirc =   dirc + ZombRandFloat(-aimrate,aimrate)
+    dirc = dirc + ZombRandFloat(-aimrate,aimrate)
     deltX=math.cos(dirc)
     deltY=math.sin(dirc)
 
@@ -1834,6 +1843,8 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
             --string.contains(weaitem:getAmmoType() or "","Arrow") or string.contains(weaitem:getAmmoType() or "","Bolt")
 
+            local offset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugOffset"):getValue()
+            local spawnOffset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSpawnOffset"):getValue()
 
             if  (string.contains(handWeapon:getAmmoType() or "","Shotgun") or string.contains(handWeapon:getAmmoType() or "","shotgun") or string.contains(handWeapon:getAmmoType() or "","shell") or string.contains(handWeapon:getAmmoType() or "","Shell")) then
                 local shotgunDistanceModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgunDistanceModifier")
@@ -1853,8 +1864,9 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                 tablez[7] = tablez[7]*0.75  --ballistic distance
                 tablez[15] = false --isthroughwall
 
-                --default 0.6
-                local offset = 0.4
+                tablez[4][1] = tablez[4][1] + spawnOffset*math.cos(dircOg)
+                tablez[4][2] = tablez[4][2] + spawnOffset*math.sin(dircOg)
+
                 tablez[4][1] = tablez[4][1]+offset*tablez[3][1]    --offsetx=offsetx +.6 * deltX; deltX is cos of dirc
                 tablez[4][2] = tablez[4][2]+offset*tablez[3][2]    --offsety=offsety +.6 * deltY; deltY is sin of dirc
                 tablez[4][3] = tablez[4][3]+0.5                 --offsetz=offsetz +.5
@@ -1883,10 +1895,11 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                 tablez[12] = 1.8
                 tablez[15]  = false
             
-                --default 0.6
-                local offset = 0.4
-                tablez[4][1] = tablez[4][1]+offset*tablez[3][1]
-                tablez[4][2] = tablez[4][2]+offset*tablez[3][2]
+                tablez[4][1] = tablez[4][1] + spawnOffset*math.cos(dircOg)
+                tablez[4][2] = tablez[4][2] + spawnOffset*math.sin(dircOg)
+
+                tablez[4][1] = tablez[4][1] + offset*tablez[3][1]
+                tablez[4][2] = tablez[4][2] + offset*tablez[3][2]
                 tablez[4][3] = tablez[4][3]+0.5
 
                 tablez["ThroNumber"] = ScriptManager.instance:getItem(handWeapon:getFullType()):getMaxHitCount()

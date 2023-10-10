@@ -50,6 +50,26 @@ option Advanced_trajectory.ATY_damage
 	translation = Advanced_trajectoryATY_damage,
 }
 
+option Advanced_trajectory.DebugOffset
+{
+	type = double,
+	min = 0,
+	max = 100,
+	default = 0.4,
+	page = Advanced_trajectory,
+	translation = Advanced_trajectoryDebugOffset,
+}
+
+option Advanced_trajectory.DebugSpawnOffset
+{
+	type = double,
+	min = 0,
+	max = 100,
+	default = 0.4,
+	page = Advanced_trajectory,
+	translation = Advanced_trajectoryDebugSpawnOffset,
+}
+
 option Advanced_trajectory.XPKillModifier
 {
 	type = double,
