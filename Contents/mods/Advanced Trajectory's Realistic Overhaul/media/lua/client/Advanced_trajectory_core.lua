@@ -90,17 +90,24 @@ function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
     local zbtable = {}  -- zombie table
     local prtable = {}  -- player table
 
+    local gridMultiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugGridMultiplier"):getValue()
+
+    -- for loop that acts as a 3x3 grid for the bullet and checks the area for zombies/players
     for kz = -1,1 do
         for vz = -1,1 do
-            local sq = getCell():getGridSquare(postable[1]+kz*0.5,postable[2]+vz*0.5,postable[3])
+            -- grid is actually decreased by half
+            local sq = getCell():getGridSquare(postable[1]+kz*gridMultiplier, postable[2]+vz*gridMultiplier, postable[3])
             if sq then
 
                 local movingObjects = sq:getMovingObjects()
              --print(movingObjects)
 
                 for zz=1,movingObjects:size() do
+                    -- i'm guessing movingObjects is a java array considering you go to index 0
                     local zombiez = movingObjects:get(zz-1)
                      --print(zombiez)
+
+                     -- add to designated table if instanceOf(whatever)
                     if instanceof(zombiez,"IsoZombie") then
                          --print("addzombie")
                         zbtable[zombiez] = 1
@@ -119,15 +126,15 @@ function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
     local minzb = {false,1}
     local minpr = {false,1}
 
-
-    -- zombie table
-    -- what is mindistance?
+    local mindistModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugMindistCondition"):getValue()
+    print('-----------START-------------------')
+    -- goes through zombie table which contains a number of zombies found in the half 3x3 grid
     for sz,bz in pairs(zbtable) do
 
-        -- use euclidian distance to find distance between target and bullet
+        -- uses euclidian distance to find distance between target and bullet
         mindistance = (postable[1] - sz:getX())^2 + (postable[2] - sz:getY())^2
-        --print(mindistance)
-        if  mindistance<=0.42*damage then
+        print(mindistance)
+        if  mindistance<=mindistModifier*damage then
             -- update minzb if mindistance is closer
             if mindistance < minzb[2] then
                 minzb = {sz,mindistance}
@@ -152,7 +159,8 @@ function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
     -- end
 
     --print('mindistance: ', mindistance)
-    --print('minzb/minpr: ', minzb[1], '/', minpr[1])
+    print('FINAL minzb/mindist: ', minzb[1], '/', minzb[2])
+    print('-----------END-------------------')
 
     -- returns BOOL on whether zombie or player was hit
     return minzb[1],minpr[1]
@@ -1517,7 +1525,7 @@ function Advanced_trajectory.checkontick()
                         -- elseif vt[9] == "GrenadeLauncher" then
                             -- tanksuperboom(vt[2])
                         end
-
+                        
                         if isClient() then
 
                             sendClientCommand("ATY_cshotzombie","true",{Zombie:getOnlineID(),vt[19]:getOnlineID()})
@@ -1581,20 +1589,11 @@ function Advanced_trajectory.checkontick()
                             if vt[19] then
 
                                 if isClient() then
-
                                     sendClientCommand("ATY_killzombie","true",{Zombie:getOnlineID()})
                                     -- Zombie:Kill(vt[19])
                                 end
                                 Zombie:Kill(vt[19])
-
-                                
-                                    
-
-
-                            
-
-                                
-                                
+                                             
                                 vt[19]:setZombieKills(vt[19]:getZombieKills()+1)
                                 vt[19]:setLastHitCount(1)
 
@@ -1608,6 +1607,63 @@ function Advanced_trajectory.checkontick()
 
                             end
                                 
+                        end
+
+                        ------------------------------------------------------------------------------
+                        ------COMPATABILITY FOR BRITA'S BOWS AND CROSSBOWS (CREDITS TO LISOLA)---------
+                        ------------------------------------------------------------------------------
+                        local weaitem = player:getPrimaryHandItem()
+                        -- 50% chance of breaking
+    
+                        local proj  = ""
+                        local isBow = false
+                        local broke = false
+                        if string.contains(weaitem:getAmmoType() or "","Arrow_Fiberglass") then
+                            proj  = InventoryItemFactory.CreateItem("Arrow_Fiberglass")
+                            isBow = true
+                        end
+
+                        if string.contains(weaitem:getAmmoType() or "","Bolt_Bear") then
+                            proj  = InventoryItemFactory.CreateItem("Bolt_Bear")
+                            isBow = true
+                        end
+
+                        if ZombRandFloat(1, 10) <= 5 then
+                            proj  = InventoryItemFactory.CreateItem(proj:getModData().Break)
+                            broke = true
+                        end
+
+                        if isBow then
+                            if isClient() then
+                                sendClientCommand("ATRO", "attachProjZombie", {v[19]:getOnlineID(), Zombie:getOnlineID(), {Zombie:getX(), Zombie:getY(), Zombie:getZ()}, proj, broke})
+                            end
+
+                            if Zombie and Zombie:isAlive() then
+                                if Zombie:getModData().stuck_Body01 == nil then
+                                    Zombie:setAttachedItem("Stuck Body01", proj)
+                                    Zombie:getModData().stuck_Body01 = 1
+                                elseif	Zombie:getModData().stuck_Body02 == nil then
+                                    Zombie:setAttachedItem("Stuck Body02", proj)
+                                    Zombie:getModData().stuck_Body02 = 1
+                                elseif	Zombie:getModData().stuck_Body03 == nil then
+                                    Zombie:setAttachedItem("Stuck Body03", proj)
+                                    Zombie:getModData().stuck_Body03 = 1
+                                elseif	Zombie:getModData().stuck_Body04 == nil then
+                                    Zombie:setAttachedItem("Stuck Body04", proj)
+                                    Zombie:getModData().stuck_Body04 = 1
+                                elseif	Zombie:getModData().stuck_Body05 == nil then
+                                    Zombie:setAttachedItem("Stuck Body05", proj)
+                                    Zombie:getModData().stuck_Body05 = 1
+                                elseif	Zombie:getModData().stuck_Body06 == nil then
+                                    Zombie:setAttachedItem("Stuck Body06", proj)
+                                    Zombie:getModData().stuck_Body06 = 1
+                                else
+                                    Zombie:getCurrentSquare():AddWorldInventoryItem(proj, 0.0, 0.0, 0.0)
+                                end
+                            else
+                                --print("Projectile to Zombie Inv")
+                                Zombie:getInventory():AddItem(proj)
+                            end
                         end
     
     
@@ -1688,11 +1744,6 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
     local player=character
 
-    -- player position
-    local offx = character:getX()
-    local offy = character:getY()
-    local offz = character:getZ()
-
     local deltX
     local deltY
     local ProjectileCount = 1
@@ -1710,7 +1761,12 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     -- E (top right): -pi/2 (-90)
     -- S (bottom right corner): 0
     local dirc = player:getForwardDirection():getDirection()
-    local dircOg = player:getForwardDirection():getDirection()
+
+    -- bullet position 
+    local spawnOffset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSpawnOffset"):getValue()
+    local offx = character:getX()+spawnOffset*math.cos(dirc)
+    local offy = character:getY()+spawnOffset*math.sin(dirc)
+    local offz = character:getZ()
 
     -- pi/250 = .7 degrees
     -- aimnum can go up to (77-9+40) 108 
@@ -1732,7 +1788,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         item,                                      --1物品obj
         square,                                    --2方格obj
         {deltX,deltY},                             --3向量
-        {offx, offy, offz},                        --4偏移量
+        {offx, offy, offz},                        --4偏移量 BULLET POS
         dirc,                                      --5方向
         _damage,                                   --6伤害
         ballisticdistance,                         --7距离
@@ -1748,7 +1804,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         0,                                         --17当前距离
         distancez,                                 --18距离常数
         player,                                    --19玩家
-        {offx, offy, offz},                        --20原始偏移量
+        {offx, offy, offz},                        --20原始偏移量 PLAYER POS
         0,                                         --21计数 
         throwinfo                                  --22投掷物属性                                                          
     }
@@ -1844,7 +1900,6 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
             --string.contains(weaitem:getAmmoType() or "","Arrow") or string.contains(weaitem:getAmmoType() or "","Bolt")
 
             local offset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugOffset"):getValue()
-            local spawnOffset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSpawnOffset"):getValue()
 
             if  (string.contains(handWeapon:getAmmoType() or "","Shotgun") or string.contains(handWeapon:getAmmoType() or "","shotgun") or string.contains(handWeapon:getAmmoType() or "","shell") or string.contains(handWeapon:getAmmoType() or "","Shell")) then
                 local shotgunDistanceModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgunDistanceModifier")
@@ -1863,9 +1918,6 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                 tablez[12] = 1.6    --ballistic speed
                 tablez[7] = tablez[7]*0.75  --ballistic distance
                 tablez[15] = false --isthroughwall
-
-                tablez[4][1] = tablez[4][1] + spawnOffset*math.cos(dircOg)
-                tablez[4][2] = tablez[4][2] + spawnOffset*math.sin(dircOg)
 
                 tablez[4][1] = tablez[4][1]+offset*tablez[3][1]    --offsetx=offsetx +.6 * deltX; deltX is cos of dirc
                 tablez[4][2] = tablez[4][2]+offset*tablez[3][2]    --offsety=offsety +.6 * deltY; deltY is sin of dirc
@@ -1894,9 +1946,6 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
                 tablez[12] = 1.8
                 tablez[15]  = false
-            
-                tablez[4][1] = tablez[4][1] + spawnOffset*math.cos(dircOg)
-                tablez[4][2] = tablez[4][2] + spawnOffset*math.sin(dircOg)
 
                 tablez[4][1] = tablez[4][1] + offset*tablez[3][1]
                 tablez[4][2] = tablez[4][2] + offset*tablez[3][2]
