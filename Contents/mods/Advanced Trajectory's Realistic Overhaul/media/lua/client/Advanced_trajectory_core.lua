@@ -1,6 +1,7 @@
 Advanced_trajectory = {}
 Advanced_trajectory.table={}
 Advanced_trajectory.boomtable={}
+Advanced_trajectory.weaponModEffectsTable={}
 Advanced_trajectory.aimcursor=nil
 Advanced_trajectory.aimcursorsq = nil
 Advanced_trajectory.panel = {}
@@ -473,6 +474,56 @@ function Advanced_trajectory.boomsfx(sq,sfxName,sfxNum,ticktime)
 end
 
 -----------------------------------
+--ATTACHMENT EFFECTS FUNC SECT-----
+-----------------------------------
+function Advanced_trajectory.attachmentBuff(weapon)  
+    local scope = weapon:getScope() -- scopes/reddots/sights
+    local canon = weapon:getCanon() -- barrel/laser and maybe foregrip attachment
+    local stock = weapon:getStock() 
+    local recoilPad = weapon:getRecoilpad() 
+    local sling = weapon:getSling()
+
+    local modTable = {scope, canon, stock, recoilPad}
+
+    -- attachment effect can vary from -10 to 10 (or even beyond!)
+    local reduceSpeed = 0
+    local focusCounterSpeed = 0
+    local range = 0
+    local recoil = 0 
+    local angle = 0
+
+    -- slings give flat buff
+    if sling then
+        reduceSpeed = reduceSpeed - 5
+    end
+
+    -- for every attachment, add all of their buffs/nerfs into var
+    for m in modTable do
+        -- check if it exists first
+        if m then
+            reduceSpeed = reduceSpeed + m:getAimingTime()
+            focusCounterSpeed = focusCounterSpeed + m:getHitChance()
+            range = range + m:getMaxRange()
+            recoil = recoil + m:getRecoilDelay()
+            angle = angle + m:getAngle()
+        end
+    end
+
+    -- turn flat values into a multipler (ex. 1.3 or 0.3)
+
+
+    local effectsTable =  {
+        reduceSpeed,        --1
+        focusCounterSpeed,  --2
+        range,              --3
+        recoil,             --4
+        angle,              --5
+    }
+
+    table.insert(Advanced_trajectory.weaponModEffectsTable,effectsTable)
+end
+
+-----------------------------------
 --AIMNUM/BLOOM LOGIC FUNC SECT---
 -----------------------------------
 function Advanced_trajectory.OnPlayerUpdate()
@@ -788,9 +839,9 @@ function Advanced_trajectory.OnPlayerUpdate()
             reduceSpeed = reduceSpeed + getSandboxOptions():getOptionByName("Advanced_trajectory.proneReduceSpeedBuff"):getValue() 
         end
 
-        ----------------------
-        --REDDOT AIMING BUFF--
-        ----------------------
+        ---------------------------------
+        --REDDOT AIMING ATTACHMENT BUFF--
+        ---------------------------------
         local scope = weaitem:getScope()
         if scope then
             if scope:getAimingTime() > 0 then
@@ -828,9 +879,9 @@ function Advanced_trajectory.OnPlayerUpdate()
             focusCounterSpeed = (2 + level/10)*focusCounterSpeed
         end
 
-        ----------------------
-        --LASER SPEED BUFF----
-        ----------------------
+        ---------------------------------
+        --LASER SPEED ATTACHMENT BUFF----
+        ---------------------------------
         local canon = weaitem:getCanon()
         if canon then
             if canon:getHitChance() > 0 then
@@ -838,9 +889,9 @@ function Advanced_trajectory.OnPlayerUpdate()
             end
         end
 
-        ----------------------
-        --STOCK SPEED BUFF----
-        ----------------------
+        --------------------------------
+        --STOCK SPEED ATTACHMENT BUFF---
+        --------------------------------
         local stock = weaitem:getStock()
         if stock then
             if stock:getHitChance() > 0 then
@@ -848,9 +899,9 @@ function Advanced_trajectory.OnPlayerUpdate()
             end
         end
 
-        ----------------------
-        --RECOIL PAD BUFF-----
-        ----------------------
+        --------------------------------
+        --RECOIL PAD ATTACHMENT BUFF----
+        --------------------------------
         local recoilPad = weaitem:getRecoilpad()
         if recoilPad then
             focusCounterSpeed = focusCounterSpeed * 1.3
@@ -2009,7 +2060,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     end
 
     ---------------------------
-    -----SCOPE RANGE BUFF------
+    -----SCOPE RANGE ATTACHMENT BUFF------
     ---------------------------
     local scope = handWeapon:getScope()
     if scope then
@@ -2059,7 +2110,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
             local numpi = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgundivision"):getValue() *0.7
 
             ---------------------------
-            -----CHOKE RANGE BUFF------
+            -----CHOKE RANGE ATTACHMENT BUFF------
             ---------------------------
             local choke = handWeapon:getCanon()
             if choke then
@@ -2106,9 +2157,9 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         
     end
 
-    ----------------------
-    --RECOIL PAD BUFF-----
-    ----------------------
+    ---------------------------------
+    --RECOIL PAD ATTACHMENT BUFF-----
+    ---------------------------------
     local recoilModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.recoilModifier"):getValue()
     -- recoils range from 0.5 to 2.7
     Advanced_trajectory.aimnumBeforeShot = Advanced_trajectory.aimnum
