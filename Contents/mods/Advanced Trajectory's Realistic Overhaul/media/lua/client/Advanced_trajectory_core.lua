@@ -1,7 +1,6 @@
 Advanced_trajectory = {}
 Advanced_trajectory.table={}
 Advanced_trajectory.boomtable={}
-Advanced_trajectory.weaponModEffectsTable={}
 Advanced_trajectory.aimcursor=nil
 Advanced_trajectory.aimcursorsq = nil
 Advanced_trajectory.panel = {}
@@ -128,13 +127,13 @@ function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
     local minpr = {false,1}
 
     local mindistModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugMindistCondition"):getValue()
-    print('-----------START-------------------')
+    --print('-----------START-------------------')
     -- goes through zombie table which contains a number of zombies found in the half 3x3 grid
     for sz,bz in pairs(zbtable) do
 
         -- uses euclidian distance to find distance between target and bullet
         mindistance = (postable[1] - sz:getX())^2 + (postable[2] - sz:getY())^2
-        print(mindistance)
+        --print(mindistance)
         if  mindistance<=mindistModifier*damage then
             -- update minzb if mindistance is closer
             if mindistance < minzb[2] then
@@ -160,8 +159,8 @@ function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
     -- end
 
     --print('mindistance: ', mindistance)
-    print('FINAL minzb/mindist: ', minzb[1], '/', minzb[2])
-    print('-----------END-------------------')
+    --print('FINAL minzb/mindist: ', minzb[1], '/', minzb[2])
+    --print('-----------END-------------------')
 
     -- returns BOOL on whether zombie or player was hit
     return minzb[1],minpr[1]
@@ -476,51 +475,63 @@ end
 -----------------------------------
 --ATTACHMENT EFFECTS FUNC SECT-----
 -----------------------------------
-function Advanced_trajectory.attachmentBuff(weapon)  
-    local scope = weapon:getScope() -- scopes/reddots/sights
-    local canon = weapon:getCanon() -- barrel/laser and maybe foregrip attachment
-    local stock = weapon:getStock() 
-    local recoilPad = weapon:getRecoilpad() 
-    local sling = weapon:getSling()
+-- Consider vanilla AND brita's into account
+function Advanced_trajectory.getAttachmentEffects(weapon)  
+    local scope     = weapon:getScope() -- scopes/reddots/sights
+    local canon     = weapon:getCanon() -- britas: bayonets, barrels, chokes
+    local stock     = weapon:getStock() -- stocks, lasers
+    local recoilPad = weapon:getRecoilpad() -- britas: pad, pistol stock
+    local sling     = weapon:getSling() -- britas: slings, foregrips, launchers, ammobelts
 
-    local modTable = {scope, canon, stock, recoilPad}
+    --print("Scp/Can/Stk/Rec/Slg: ", scope, " / ", canon, " / ", stock, " / ", recoilPad, " / ", sling)
 
-    -- attachment effect can vary from -10 to 10 (or even beyond!)
-    local reduceSpeed = 0
-    local focusCounterSpeed = 0
-    local range = 0
-    local recoil = 0 
-    local angle = 0
+    local modTable  = {scope, canon, stock, recoilPad}
 
-    -- slings give flat buff
-    if sling then
-        reduceSpeed = reduceSpeed - 5
-    end
+    local aimingTime = 0         --1 multiply to reduceSpeed           + good
+    local hitChance  = 0         --2 multiply to focusCounterSpeed     + good
+    local recoil     = 0         --3 multiply to recoil                - good
+    local range      = 0         --4 add to proj range                 + good
+    local angle      = 0         --5                                   - good
+
+    local effectsTable =  {
+        aimingTime,         
+        hitChance ,       
+        recoil    ,       
+        range     ,        
+        angle     ,  
+    }
 
     -- for every attachment, add all of their buffs/nerfs into var
-    for m in modTable do
+    for index, mod in pairs(modTable) do
         -- check if it exists first
-        if m then
-            reduceSpeed = reduceSpeed + m:getAimingTime()
-            focusCounterSpeed = focusCounterSpeed + m:getHitChance()
-            range = range + m:getMaxRange()
-            recoil = recoil + m:getRecoilDelay()
-            angle = angle + m:getAngle()
+        if mod then
+            effectsTable[1]  = effectsTable[1] + mod:getAimingTime()
+            effectsTable[2]  = effectsTable[2] + mod:getHitChance()
+            effectsTable[3]  = effectsTable[3] + mod:getRecoilDelay()
+            effectsTable[4]  = effectsTable[4] + mod:getMaxRange()
+            effectsTable[5]  = effectsTable[5] + mod:getAngle()
         end
     end
 
-    -- turn flat values into a multipler (ex. 1.3 or 0.3)
+    --aimingTime: flat nerf/buff                1.1 - table
+    if  effectsTable[1] < 0 then
+        effectsTable[1] = effectsTable[1]*2 / 100 
+    else
+        effectsTable[1] = effectsTable[1]*5 / 100 
+    end
 
+    --hitChance: flat nerf/buff                 2 - table
+    if  effectsTable[2] < 0 then
+        effectsTable[2] = effectsTable[2]*3 / 100 
+    else
+        effectsTable[2] = effectsTable[2]*8 / 100 
+    end
 
-    local effectsTable =  {
-        reduceSpeed,        --1
-        focusCounterSpeed,  --2
-        range,              --3
-        recoil,             --4
-        angle,              --5
-    }
+    effectsTable[3]     = (effectsTable[3]*5 / 100) + 1
+    effectsTable[4]     =  effectsTable[4] * 0.5
+    effectsTable[5]     =  effectsTable[5] * 10
 
-    table.insert(Advanced_trajectory.weaponModEffectsTable,effectsTable)
+    return effectsTable
 end
 
 -----------------------------------
@@ -545,6 +556,9 @@ function Advanced_trajectory.OnPlayerUpdate()
         else
             weaitem:setMaxHitCount(0)
         end
+
+        local modEffectsTable = Advanced_trajectory.getAttachmentEffects(weaitem)  
+        print("Rs: ", modEffectsTable[1], " / Fc: ", modEffectsTable[2], " / Re: ", modEffectsTable[3], " / Ra: ", modEffectsTable[4], " / A:", modEffectsTable[5])
 
         Mouse.setCursorVisible(false)
         
@@ -839,14 +853,12 @@ function Advanced_trajectory.OnPlayerUpdate()
             reduceSpeed = reduceSpeed + getSandboxOptions():getOptionByName("Advanced_trajectory.proneReduceSpeedBuff"):getValue() 
         end
 
-        ---------------------------------
-        --REDDOT AIMING ATTACHMENT BUFF--
-        ---------------------------------
-        local scope = weaitem:getScope()
-        if scope then
-            if scope:getAimingTime() > 0 then
-                reduceSpeed = reduceSpeed * 1.3
-            end
+        --------------------------------------------
+        --REDUCESPEED/AIMINGTIME ATTACHMENT EFFECT--
+        --------------------------------------------
+        local reduceSpeedMod = modEffectsTable[1]
+        if reduceSpeedMod ~= 0 then
+            reduceSpeed = reduceSpeed + reduceSpeedMod
         end
 
         if Advanced_trajectory.aimnum > Advanced_trajectory.minaimnum then
@@ -874,39 +886,19 @@ function Advanced_trajectory.OnPlayerUpdate()
         focusCounterSpeed = focusCounterSpeed - (recoilDelay * recoilDelayModifier)
         local focusLevelGained = 3
 
-        -- player starts focusing faster once reaching level 5
-        if realLevel >= 5 then
-            focusCounterSpeed = (2 + level/10)*focusCounterSpeed
+        -- focusCounterSpeed scales with flat buff
+        if realLevel > focusLevelGained then
+            focusCounterSpeed = focusCounterSpeed + (((realLevel-focusLevelGained) * 7)/10)
         end
 
-        ---------------------------------
-        --LASER SPEED ATTACHMENT BUFF----
-        ---------------------------------
-        local canon = weaitem:getCanon()
-        if canon then
-            if canon:getHitChance() > 0 then
-                focusCounterSpeed = focusCounterSpeed * 1.3
-            end
+        ---------------------------------------------------
+        --FOCUSCOUNTERSPEED/HITCHANCE ATTACHMENT EFFECT----
+        ---------------------------------------------------
+        focusCounterSpeedMod = modEffectsTable[2]
+        if focusCounterSpeedMod ~= 0 then
+            focusCounterSpeed = focusCounterSpeed + focusCounterSpeedMod
         end
-
-        --------------------------------
-        --STOCK SPEED ATTACHMENT BUFF---
-        --------------------------------
-        local stock = weaitem:getStock()
-        if stock then
-            if stock:getHitChance() > 0 then
-                focusCounterSpeed = focusCounterSpeed * 1.3
-            end
-        end
-
-        --------------------------------
-        --RECOIL PAD ATTACHMENT BUFF----
-        --------------------------------
-        local recoilPad = weaitem:getRecoilpad()
-        if recoilPad then
-            focusCounterSpeed = focusCounterSpeed * 1.3
-        end
-
+ 
         local focusLimit = 0
         if stressLv > 1 and realLevel >= focusLevelGained then
             focusLimit = realMin * (1/(5-stressLv))
@@ -1001,7 +993,8 @@ function Advanced_trajectory.OnPlayerUpdate()
         --print("P", panicLv, ", E", enduranceLv ,", H", hyperLv ,", H", hypoLv ,", S", stressLv,", T", tiredLv)
         --print("Aim Level (code): ", level)
         --print("Aim Level (real): ", realLevel)
-        --print("Def/Curr ReduceSpeed: ", speed, "/", reduceSpeed)
+        print("Def/Curr ReduceSpeed: ", speed, "/", reduceSpeed)
+        print("FocusCounterSpeed: ", focusCounterSpeed)
         --print("Min/Max/Aimnum: ",Advanced_trajectory.minaimnum, " / ", Advanced_trajectory.maxaimnum, " / ", Advanced_trajectory.aimnum)   
         --------------------------------------------------------------------
         if not Advanced_trajectory.panel.instance and  getSandboxOptions():getOptionByName("Advanced_trajectory.aimpoint"):getValue()  then
@@ -1679,14 +1672,15 @@ function Advanced_trajectory.checkontick()
                             isBow = true
                         end
 
-                        if ZombRandFloat(1, 10) <= 5 then
+                        local bowBreakChance = 100 - getSandboxOptions():getOptionByName("Advanced_trajectory.bowBreakChance"):getValue()
+                        if isBow and ZombRand(100+Advanced_trajectory.aimnumBeforeShot) >= bowBreakChance then
                             proj  = InventoryItemFactory.CreateItem(proj:getModData().Break)
                             broke = true
                         end
 
                         if isBow then
                             if isClient() then
-                                sendClientCommand("ATRO", "attachProjZombie", {v[19]:getOnlineID(), Zombie:getOnlineID(), {Zombie:getX(), Zombie:getY(), Zombie:getZ()}, proj, broke})
+                                sendClientCommand("ATY_bowzombie", "attachProjZombie", {vt[19]:getOnlineID(), Zombie:getOnlineID(), {Zombie:getX(), Zombie:getY(), Zombie:getZ()}, proj, broke})
                             end
 
                             if Zombie and Zombie:isAlive() then
@@ -1779,6 +1773,9 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         handWeapon:setMaxHitCount(0)
     end
 
+    local playerlevel = character:getPerkLevel(Perks.Aiming)
+    local modEffectsTable = Advanced_trajectory.getAttachmentEffects(handWeapon)  
+
     -- print(character)
     local item
     local winddir=1
@@ -1814,9 +1811,13 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     local dirc = player:getForwardDirection():getDirection()
 
     -- bullet position 
-    local spawnOffset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSpawnOffset"):getValue()
-    local offx = character:getX()+spawnOffset*math.cos(dirc)
-    local offy = character:getY()+spawnOffset*math.sin(dirc)
+    --local spawnOffset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSpawnOffset"):getValue()
+    --local offx = character:getX()+spawnOffset*math.cos(dirc)
+    --local offy = character:getY()+spawnOffset*math.sin(dirc)
+    --local offz = character:getZ()
+
+    local offx = character:getX()
+    local offy = character:getY()
     local offz = character:getZ()
 
     -- pi/250 = .7 degrees
@@ -1948,8 +1949,6 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
             local hideTracer = getSandboxOptions():getOptionByName("Advanced_trajectory.hideTracer"):getValue()
             --print("Tracer hidden: ", hideTracer)
 
-            --string.contains(weaitem:getAmmoType() or "","Arrow") or string.contains(weaitem:getAmmoType() or "","Bolt")
-
             local offset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugOffset"):getValue()
 
             if  (string.contains(handWeapon:getAmmoType() or "","Shotgun") or string.contains(handWeapon:getAmmoType() or "","shotgun") or string.contains(handWeapon:getAmmoType() or "","shell") or string.contains(handWeapon:getAmmoType() or "","Shell")) then
@@ -1970,8 +1969,8 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                 tablez[7] = tablez[7]*0.75  --ballistic distance
                 tablez[15] = false --isthroughwall
 
-                tablez[4][1] = tablez[4][1]+offset*tablez[3][1]    --offsetx=offsetx +.6 * deltX; deltX is cos of dirc
-                tablez[4][2] = tablez[4][2]+offset*tablez[3][2]    --offsety=offsety +.6 * deltY; deltY is sin of dirc
+                tablez[4][1] = tablez[4][1] + offset*tablez[3][1]    --offsetx=offsetx +.6 * deltX; deltX is cos of dirc
+                tablez[4][2] = tablez[4][2] + offset*tablez[3][2]    --offsety=offsety +.6 * deltY; deltY is sin of dirc
                 tablez[4][3] = tablez[4][3]+0.5                 --offsetz=offsetz +.5
 
                 isHoldingShotgun = true
@@ -2017,8 +2016,6 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     tablez[2] = tablez[2] or getWorld():getCell():getGridSquare(offx,offy,offz)
     if tablez[2] == nil then return end
 
-    local playerlevel = character:getPerkLevel(Perks.Aiming)
-
     -- NOTES: tablez[6] is damage, firearm damages vary from 0 to 2. Example, M16 has min to max: 0.8 to 1.4 (source wiki)
     tablez[6] = tablez[6] or (handWeapon:getMinDamage() + ZombRandFloat(0.1,1.3)*(0.5+handWeapon:getMaxDamage()-handWeapon:getMinDamage()))
     
@@ -2059,12 +2056,12 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         tablez[7] = tablez[7]*getSandboxOptions():getOptionByName("Advanced_trajectory.bulletdistance"):getValue() 
     end
 
-    ---------------------------
-    -----SCOPE RANGE ATTACHMENT BUFF------
-    ---------------------------
-    local scope = handWeapon:getScope()
-    if scope then
-        tablez[7] = tablez[7] + (scope:getMaxRange() * 0.20)
+    ------------------------------
+    -----RANGE ATTACHMENT EFFECT--
+    ------------------------------
+    local rangeMod = modEffectsTable[4]
+    if rangeMod ~= 0 then
+        tablez[7] = tablez[7] + rangeMod
     end
 
 
@@ -2109,19 +2106,14 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
             -- lower value means tighter spread
             local numpi = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgundivision"):getValue() *0.7
 
-            ---------------------------
-            -----CHOKE RANGE ATTACHMENT BUFF------
-            ---------------------------
-            local choke = handWeapon:getCanon()
-            if choke then
-                local angle = choke:getAngle()
-                -- two types of chokes, one that increases spread and one that decreases it
-                if angle > 0 then
-                    numpi = numpi * 0.5
-                else
-                    numpi = numpi * 1.5
-                end
+            --------------------------------
+            -----ANGLE ATTACHMENT EFFECT---
+            --------------------------------
+            local angleMod = modEffectsTable[5]
+            if angleMod ~= 0 then
+                numpi = numpi * angleMod
             end
+
 
             adirc = dirc1 +ZombRandFloat(-math.pi * numpi,math.pi*numpi)
 
@@ -2157,18 +2149,18 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         
     end
 
-    ---------------------------------
-    --RECOIL PAD ATTACHMENT BUFF-----
-    ---------------------------------
+
     local recoilModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.recoilModifier"):getValue()
     -- recoils range from 0.5 to 2.7
     Advanced_trajectory.aimnumBeforeShot = Advanced_trajectory.aimnum
     local recoil = handWeapon:getMaxDamage()*recoilModifier
 
-    local weaitem = player:getPrimaryHandItem()
-    local recoilPad = weaitem:getRecoilpad()
-    if recoilPad then
-        recoil = recoil * 0.5
+    -----------------------------
+    --RECOIL ATTACHMENT EFFECT---
+    -----------------------------
+    local recoilMod = modEffectsTable[3]
+    if recoilMod ~= 0 then
+        recoil = recoil * recoilMod
     end
 
     -- Prone stance means less recoil

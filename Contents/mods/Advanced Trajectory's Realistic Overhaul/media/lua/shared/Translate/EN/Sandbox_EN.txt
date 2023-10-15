@@ -1,8 +1,10 @@
 Sandbox_EN = {
 
-    	Sandbox_Advanced_trajectory = "Advanced Trajectory (MAIN)",
+    Sandbox_Advanced_trajectory = "Advanced Trajectory (MAIN)",
 	Sandbox_Advanced_trajectory_moodles = "Advanced Trajectory (MOODLES)",
 	Sandbox_Advanced_trajectory_crosshair = "Advanced Trajectory (CROSSHAIR)",
+	Sandbox_Advanced_trajectory_debug = "Advanced Trajectory (DEBUG / DONT TOUCH)",
+	Sandbox_Advanced_trajectory_XP = "Advanced Trajectory (EXP)",
 
 	Sandbox_Advanced_trajectoryaimpoint = "Enable The Aimpoint",
 	Sandbox_Advanced_trajectoryaimpoint_tooltip = "Show or hide crosshair.",
@@ -41,8 +43,10 @@ Sandbox_EN = {
 	Sandbox_Advanced_trajectoryrecoilModifier = "Recoil Modifier",
 	Sandbox_Advanced_trajectoryrecoilModifier_tooltip = "Multiplier of gun's max dmg added as recoil to crosshair (adds bloom when shooting).",
 
-	Sandbox_Advanced_trajectoryXPKillModifier = "Flat XP From Zombie Kill",
-	Sandbox_Advanced_trajectoryXPHitModifier = "Multiplier on XP From Zombie Hit (scales off gun's damage)",
+	Sandbox_Advanced_trajectoryXPKillModifier = "Additional Flat XP From Zombie Kill",
+	Sandbox_Advanced_trajectoryXPHitModifier = "Flat XP From Zombie Hit",
+
+	Sandbox_Advanced_trajectorybowBreakChance = "Chance of arrow/bolt breaking (Brita's) when bloom is 0",
 
 	Sandbox_Advanced_trajectorymaxaimnum = "Max bloom / Maxaimnum",
 	Sandbox_Advanced_trajectorymaxaimnum_tooltip = "Value that limits how much bloom is added to crosshair. Higher means larger possible bloom.",
