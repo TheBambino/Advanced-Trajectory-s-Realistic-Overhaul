@@ -55,7 +55,7 @@ option Advanced_trajectory.DebugOffset
 	type = double,
 	min = 0,
 	max = 100,
-	default = 0.6,
+	default = 0,
 	page = Advanced_trajectory_debug,
 	translation = Advanced_trajectoryDebugOffset,
 }
@@ -65,7 +65,7 @@ option Advanced_trajectory.DebugSpawnOffset
 	type = double,
 	min = 0,
 	max = 100,
-	default = 0,
+	default = 0.2,
 	page = Advanced_trajectory_debug,
 	translation = Advanced_trajectoryDebugSpawnOffset,
 }
@@ -74,7 +74,7 @@ option Advanced_trajectory.DebugMindistCondition
 {
 	type = double,
 	min = 0,
-	max = 100,
+	max = 10,
 	default = 0.42,
 	page = Advanced_trajectory_debug,
 	translation = Advanced_trajectoryDebugMindistCondition,
@@ -84,7 +84,7 @@ option Advanced_trajectory.DebugGridMultiplier
 {
 	type = double,
 	min = 0,
-	max = 100,
+	max = 10,
 	default = 0.5,
 	page = Advanced_trajectory_debug,
 	translation = Advanced_trajectoryDebugGridMultiplier,
@@ -95,7 +95,7 @@ option Advanced_trajectory.XPKillModifier
 	type = double,
 	min = 0,
 	max = 100,
-	default = 0.5,
+	default = 3,
 	page = Advanced_trajectory_XP,
 	translation = Advanced_trajectoryXPKillModifier,
 }
@@ -105,7 +105,7 @@ option Advanced_trajectory.XPHitModifier
 	type = double,
 	min = 0,
 	max = 100,
-	default = 0.05,
+	default = 0.5,
 	page = Advanced_trajectory_XP,
 	translation = Advanced_trajectoryXPHitModifier,
 }

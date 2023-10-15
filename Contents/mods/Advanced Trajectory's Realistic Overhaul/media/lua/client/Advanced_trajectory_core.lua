@@ -558,7 +558,7 @@ function Advanced_trajectory.OnPlayerUpdate()
         end
 
         local modEffectsTable = Advanced_trajectory.getAttachmentEffects(weaitem)  
-        print("Rs: ", modEffectsTable[1], " / Fc: ", modEffectsTable[2], " / Re: ", modEffectsTable[3], " / Ra: ", modEffectsTable[4], " / A:", modEffectsTable[5])
+        --print("Rs: ", modEffectsTable[1], " / Fc: ", modEffectsTable[2], " / Re: ", modEffectsTable[3], " / Ra: ", modEffectsTable[4], " / A:", modEffectsTable[5])
 
         Mouse.setCursorVisible(false)
         
@@ -993,8 +993,8 @@ function Advanced_trajectory.OnPlayerUpdate()
         --print("P", panicLv, ", E", enduranceLv ,", H", hyperLv ,", H", hypoLv ,", S", stressLv,", T", tiredLv)
         --print("Aim Level (code): ", level)
         --print("Aim Level (real): ", realLevel)
-        print("Def/Curr ReduceSpeed: ", speed, "/", reduceSpeed)
-        print("FocusCounterSpeed: ", focusCounterSpeed)
+        --print("Def/Curr ReduceSpeed: ", speed, "/", reduceSpeed)
+        --print("FocusCounterSpeed: ", focusCounterSpeed)
         --print("Min/Max/Aimnum: ",Advanced_trajectory.minaimnum, " / ", Advanced_trajectory.maxaimnum, " / ", Advanced_trajectory.aimnum)   
         --------------------------------------------------------------------
         if not Advanced_trajectory.panel.instance and  getSandboxOptions():getOptionByName("Advanced_trajectory.aimpoint"):getValue()  then
@@ -1811,14 +1811,14 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     local dirc = player:getForwardDirection():getDirection()
 
     -- bullet position 
-    --local spawnOffset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSpawnOffset"):getValue()
-    --local offx = character:getX()+spawnOffset*math.cos(dirc)
-    --local offy = character:getY()+spawnOffset*math.sin(dirc)
-    --local offz = character:getZ()
-
-    local offx = character:getX()
-    local offy = character:getY()
+    local spawnOffset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSpawnOffset"):getValue()
+    local offx = character:getX()+spawnOffset*math.cos(dirc)
+    local offy = character:getY()+spawnOffset*math.sin(dirc)
     local offz = character:getZ()
+
+    --local offx = character:getX()
+    --local offy = character:getY()
+    --local offz = character:getZ()
 
     -- pi/250 = .7 degrees
     -- aimnum can go up to (77-9+40) 108 
