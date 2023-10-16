@@ -12,6 +12,7 @@ Advanced_trajectory.minaimnum = 0
 Advanced_trajectory.inhaleCounter = 0
 Advanced_trajectory.exhaleCounter = 0
 Advanced_trajectory.maxFocusCounter = 100
+Advanced_trajectory.aimrate = 0
 
 -- for aimtex
 Advanced_trajectory.alpha = 0
@@ -84,40 +85,49 @@ end
 ----------------------------------------------------
 --BULLET HIT ZOMBIE/PLAYER DETECTION ?? FUNC SECT---
 ----------------------------------------------------
--- NOTES: postable (position table of offsets xyz {}); damage (is either 1,2 or 3 where 1 is head, 2 is body, 3 is feet); isshotplayer (bool for if players can shoot each other)
-function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
+-- NOTES: bulletTable (position table of offsets xyz {}); damage (is either 1+angleammooff,2 or 3 where 1 is head, 2 is body, 3 is feet); isshotplayer (bool for if players can shoot each other)
+
+function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,playerTable)
 
     local zbtable = {}  -- zombie table
     local prtable = {}  -- player table
 
     local gridMultiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugGridMultiplier"):getValue()
 
-    -- for loop that acts as a 3x3 grid for the bullet and checks the area for zombies/players
-    for kz = -1,1 do
-        for vz = -1,1 do
-            -- grid is actually decreased by half
-            local sq = getCell():getGridSquare(postable[1]+kz*gridMultiplier, postable[2]+vz*gridMultiplier, postable[3])
-            if sq then
+    local playerDir = getPlayer():getForwardDirection():getDirection()*360/(2*math.pi)
+    --print("Bullet pos: ", math.floor(bulletTable[1]), " | ", math.floor(bulletTable[2]))
+    --print("Player pos: ", math.floor(playerTable[1]), " | ", math.floor(playerTable[2]))
+    
+    -- if same player cell and looking SE direction ish, set true
+    -- for loop that acts as a 3x3 grid that is halved for the bullet and checks the area for zombies/players
+    for kz = -1,1 do    -- x pos
+        for vz = -1,1 do    -- y pos
 
-                local movingObjects = sq:getMovingObjects()
-             --print(movingObjects)
+                local sq = getCell():getGridSquare(bulletTable[1]+kz*gridMultiplier, bulletTable[2]+vz*gridMultiplier, bulletTable[3])
+                if sq then
 
-                for zz=1,movingObjects:size() do
-                    -- i'm guessing movingObjects is a java array considering you go to index 0
-                    local zombiez = movingObjects:get(zz-1)
-                     --print(zombiez)
+                    local movingObjects = sq:getMovingObjects()
+                    --print(movingObjects)
 
-                     -- add to designated table if instanceOf(whatever)
-                    if instanceof(zombiez,"IsoZombie") then
-                         --print("addzombie")
-                        zbtable[zombiez] = 1
-                    elseif isshotplayer and  instanceof(zombiez,"IsoPlayer") then
-                        prtable[zombiez] = 1
+                    for zz=1,movingObjects:size() do
+                        -- i'm guessing movingObjects is a java array considering you go to index 0
+                        local zombiez = movingObjects:get(zz-1)
+                        --print(zombiez)
+
+                        -- add to designated table if instanceOf(whatever)
+                        if instanceof(zombiez,"IsoZombie") then
+                            --print("addzombie")
+                            zbtable[zombiez] = 1
+                        elseif isshotplayer and  instanceof(zombiez,"IsoPlayer") then
+                            prtable[zombiez] = 1
+                        end
                     end
                 end
-            end
+            --end
         end
     end
+
+    --print("Zombie Table Size: ", #zbtable)
 
     -- minimum distance from player to target
     local mindistance = 0
@@ -129,22 +139,37 @@ function Advanced_trajectory.getShootzombie(postable,damage,isshotplayer)
     local mindistModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugMindistCondition"):getValue()
     --print('-----------START-------------------')
     -- goes through zombie table which contains a number of zombies found in the half 3x3 grid
+    -- SEEMS LIKE THIS DETERMINES HITBOX, FOCUS ON THIS INSTEAD FOR ZOMBIE COLLISION
     for sz,bz in pairs(zbtable) do
-
-        -- uses euclidian distance to find distance between target and bullet
-        mindistance = (postable[1] - sz:getX())^2 + (postable[2] - sz:getY())^2
-        --print(mindistance)
-        if  mindistance<=mindistModifier*damage then
-            -- update minzb if mindistance is closer
-            if mindistance < minzb[2] then
-                minzb = {sz,mindistance}
+        -- if zombie is behind player when looking SE, skip
+        if (playerDir <= 90 and playerDir >= 0) and ((sz:getX() < playerTable[1]-1 and sz:getY() > playerTable[2]+1) or (sz:getX() < playerTable[1] and sz:getY() < playerTable[2]) or (sz:getX() > playerTable[1]+1 and sz:getY() < playerTable[2]-1)) then
+            --print("**********skipCheckBehind LOOKING DOWN  ********")
+            --print("Player dir: ", playerDir)
+        elseif (playerDir >= -180 and playerDir <= -90) and (sz:getX() > playerTable[1] and sz:getY() > playerTable[2]) then
+            --print("**********skipCheckBehind LOOKING UP    *********")
+            --print("Player dir: ", playerDir)
+        elseif (playerDir <= 0 and playerDir >= -90) and (sz:getX() < playerTable[1] and sz:getY() > playerTable[2]) then
+            --print("**********skipCheckBehind LOOKING RIGHT *********")
+            --print("Player dir: ", playerDir)
+        elseif (playerDir >= 90 and playerDir <= 180) and (sz:getX() > playerTable[1] and sz:getY() < playerTable[2]) then
+            --print("**********skipCheckBehind LOOKING LEFT *********")
+            --print("Player dir: ", playerDir)
+        else
+            -- uses euclidian distance to find distance between target and bullet
+            mindistance = (bulletTable[1] - sz:getX())^2 + (bulletTable[2] - sz:getY())^2
+            --print(mindistance)
+            if  mindistance<=mindistModifier*damage then
+                -- update minzb if mindistance is closer
+                if mindistance < minzb[2] then
+                    minzb = {sz,mindistance}
+                end
             end
         end
     end
 
     -- player table
     for sz,bz in pairs(prtable) do
-        mindistance = (postable[1] - sz:getX())^2 + (postable[2] - sz:getY())^2
+        mindistance = (bulletTable[1] - sz:getX())^2 + (bulletTable[2] - sz:getY())^2
 
         if  mindistance<=0.4*damage then
             if mindistance < minpr[2] then
@@ -1400,7 +1425,7 @@ function Advanced_trajectory.checkontick()
                 local Playershot
 
                 -- returns object zombie and player that was shot
-                local Zombie,Playershot =  Advanced_trajectory.getShootzombie({vt[4][1] + admindel*3,vt[4][2]  + admindel*3,shootlevel},1 +angleammooff ,isshotplayer)
+                local Zombie,Playershot =  Advanced_trajectory.getShootzombie({vt[4][1] + admindel*3,vt[4][2]  + admindel*3,shootlevel},1 +angleammooff ,isshotplayer, {vt[20][1],vt[20][2],vt[20][3]})
                 
                 -- NOTES: damagezb is the damage done to zombies
                 local headShotDmgZomMultiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.headShotDmgZomMultiplier"):getValue()
@@ -1432,13 +1457,13 @@ function Advanced_trajectory.checkontick()
 
                 -- vt[4] is offset xyz
                 if not Zombie and not Playershot  then
-                    Zombie,Playershot = Advanced_trajectory.getShootzombie({vt[4][1]-0.9 +angleammooff*0.45+admindel*3,vt[4][2]-0.9+angleammooff*0.45+admindel*3,shootlevel},2,isshotplayer)
+                    Zombie,Playershot = Advanced_trajectory.getShootzombie({vt[4][1]-0.9 +angleammooff*0.45 +admindel*3, vt[4][2]-0.9 +angleammooff*0.45 +admindel*3, shootlevel},2,isshotplayer, {vt[20][1],vt[20][2],vt[20][3]})
                     damagezb = bodyShotDmgZomMultiplier*vt[6]*0.1    -- zombie bodyshot
                     saywhat = "IGUI_Bodyshot" 
                     damagepr = bodyShotDmgPlayerMultiplier               -- player bodyshot
                 end
                 if not Zombie and not Playershot then
-                    Zombie,Playershot = Advanced_trajectory.getShootzombie({vt[4][1]-1.8+0.9*angleammooff+admindel*3,vt[4][2]-1.8+0.9*angleammooff+admindel*3,shootlevel},3,isshotplayer)
+                    Zombie,Playershot = Advanced_trajectory.getShootzombie({vt[4][1]-1.8 +angleammooff*0.9 +admindel*3, vt[4][2]-1.8 +angleammooff*0.9 +admindel*3, shootlevel},3,isshotplayer, {vt[20][1],vt[20][2],vt[20][3]})
                     damagezb = footShotDmgZomMultiplier*vt[6]*0.1      -- zombie footshot
                     saywhat = "IGUI_Footshot" 
                     damagepr = footShotDmgPlayerMultiplier                -- player footshot
@@ -1823,11 +1848,19 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     -- pi/250 = .7 degrees
     -- aimnum can go up to (77-9+40) 108 
     -- max/min -+96 degrees, and even more when drunk (6*24+108 = 252 => 208 deg)
-    local aimrate = Advanced_trajectory.aimnum * math.pi / 250
+    Advanced_trajectory.aimrate = Advanced_trajectory.aimnum * math.pi / 250
+
+    -- spread should be no wider than 70 degrees from where player is aiming
+    if Advanced_trajectory.aimrate > 70 then
+        Advanced_trajectory.aimrate = 70
+    end
+    if Advanced_trajectory.aimrate < -70 then
+        Advanced_trajectory.aimrate = -70
+    end
     
     -- NOTES: I'm assuming aimrate, which is affected by aimnum, determines how wide the bullets can spread.
     -- adding dirc (direction player is facing) will cause bullets to go towards the direction of where player is looking
-    dirc = dirc + ZombRandFloat(-aimrate,aimrate)
+    dirc = dirc + ZombRandFloat(-Advanced_trajectory.aimrate,Advanced_trajectory.aimrate)
     deltX=math.cos(dirc)
     deltY=math.sin(dirc)
 
