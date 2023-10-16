@@ -94,7 +94,7 @@ option Advanced_trajectory.XPKillModifier
 {
 	type = double,
 	min = 0,
-	max = 100,
+	max = 300,
 	default = 3,
 	page = Advanced_trajectory_XP,
 	translation = Advanced_trajectoryXPKillModifier,
@@ -104,7 +104,7 @@ option Advanced_trajectory.XPHitModifier
 {
 	type = double,
 	min = 0,
-	max = 100,
+	max = 300,
 	default = 0.5,
 	page = Advanced_trajectory_XP,
 	translation = Advanced_trajectoryXPHitModifier,
