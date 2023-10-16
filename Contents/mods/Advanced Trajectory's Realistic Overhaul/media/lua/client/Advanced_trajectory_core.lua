@@ -1681,7 +1681,7 @@ function Advanced_trajectory.checkontick()
                         ------------------------------------------------------------------------------
                         ------COMPATABILITY FOR BRITA'S BOWS AND CROSSBOWS (CREDITS TO LISOLA)---------
                         ------------------------------------------------------------------------------
-                        local weaitem = player:getPrimaryHandItem()
+                        local weaitem = vt[19]:getPrimaryHandItem()
                         -- 50% chance of breaking
     
                         local proj  = ""
@@ -1850,12 +1850,13 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     -- max/min -+96 degrees, and even more when drunk (6*24+108 = 252 => 208 deg)
     Advanced_trajectory.aimrate = Advanced_trajectory.aimnum * math.pi / 250
 
+    local maxProCone = getSandboxOptions():getOptionByName("Advanced_trajectory.MaxProjCone"):getValue()
     -- spread should be no wider than 70 degrees from where player is aiming
-    if Advanced_trajectory.aimrate > 70 then
-        Advanced_trajectory.aimrate = 70
+    if Advanced_trajectory.aimrate > maxProCone then
+        Advanced_trajectory.aimrate = maxProCone
     end
-    if Advanced_trajectory.aimrate < -70 then
-        Advanced_trajectory.aimrate = -70
+    if Advanced_trajectory.aimrate < -maxProCone then
+        Advanced_trajectory.aimrate = -maxProCone
     end
     
     -- NOTES: I'm assuming aimrate, which is affected by aimnum, determines how wide the bullets can spread.
