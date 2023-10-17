@@ -1850,18 +1850,19 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     -- max/min -+96 degrees, and even more when drunk (6*24+108 = 252 => 208 deg)
     Advanced_trajectory.aimrate = Advanced_trajectory.aimnum * math.pi / 250
 
-    local maxProCone = getSandboxOptions():getOptionByName("Advanced_trajectory.MaxProjCone"):getValue()
+    local maxProjCone = getSandboxOptions():getOptionByName("Advanced_trajectory.MaxProjCone"):getValue()
     -- spread should be no wider than 70 degrees from where player is aiming
-    if Advanced_trajectory.aimrate > maxProCone then
-        Advanced_trajectory.aimrate = maxProCone
+    if Advanced_trajectory.aimrate > maxProjCone then
+        Advanced_trajectory.aimrate = maxProjCone
     end
-    if Advanced_trajectory.aimrate < -maxProCone then
-        Advanced_trajectory.aimrate = -maxProCone
-    end
+
+    --print("MaxProjCone: ",maxProjCone)
+    --print("Aimrate: ",Advanced_trajectory.aimrate )
     
     -- NOTES: I'm assuming aimrate, which is affected by aimnum, determines how wide the bullets can spread.
     -- adding dirc (direction player is facing) will cause bullets to go towards the direction of where player is looking
     dirc = dirc + ZombRandFloat(-Advanced_trajectory.aimrate,Advanced_trajectory.aimrate)
+    --print("Dirc: ", dirc)
     deltX=math.cos(dirc)
     deltY=math.sin(dirc)
 
