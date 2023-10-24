@@ -4,6 +4,7 @@ local headShotDmgZomMultiplier = getSandboxOptions():getOptionByName("Advanced_t
 local bodyShotDmgZomMultiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.bodyShotDmgZomMultiplier"):getValue()
 local footShotDmgZomMultiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.footShotDmgZomMultiplier"):getValue()
 
+
 local function Advanced_trajectory_OnServerCommand(module, command, arguments)
 
     local Playershot = getPlayer()
@@ -16,51 +17,82 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
 
         -- print(NonPvpZone.getNonPvpZone(getPlayer():getX(), getPlayer():getY()))
         -- print(SafeHouse.getSafeHouse(getPlayer():getCurrentSquare()))
-
         local damagepr = math.floor(arguments[1])
-        local headpart = {
-            BodyPartType.Head
+        print("damagepr: " .. damagepr)
+        Playershot:Say("arguments[1]: " .. arguments[1])
+        Playershot:Say("damagepr: " .. damagepr)
+
+
+        local headShot = {
+            BodyPartType.Head,			BodyPartType.Head,
+            BodyPartType.Neck
         }
-        local midpart = {
-            BodyPartType.Torso_Upper,
-            BodyPartType.Torso_Lower,
+        local bodyShot = {
+            BodyPartType.Torso_Upper,	BodyPartType.Torso_Lower,
+            BodyPartType.Torso_Upper,	BodyPartType.Torso_Lower,
+            BodyPartType.Torso_Upper,	BodyPartType.Torso_Lower,
             BodyPartType.Groin,
-            BodyPartType.Back
+            BodyPartType.UpperArm_L,	BodyPartType.UpperArm_R,
+            BodyPartType.ForeArm_L,		BodyPartType.ForeArm_R,
+            BodyPartType.UpperLeg_L,	BodyPartType.UpperLeg_R,
+            BodyPartType.UpperLeg_L,	BodyPartType.UpperLeg_R,
+            BodyPartType.LowerLeg_L,	BodyPartType.LowerLeg_R
         }
-        local lowpart = {
-            BodyPartType.UpperLeg_L,
-            BodyPartType.UpperLeg_R,
-            BodyPartType.LowerLeg_L,
-            BodyPartType.LowerLeg_R,
-            BodyPartType.Foot_L,
-            BodyPartType.Foot_R
+        local terminalShot = {
+            BodyPartType.Hand_L,		BodyPartType.Hand_R,
+            BodyPartType.Foot_L,		BodyPartType.Foot_R
         }
+        local shotpart = BodyPartType.Torso_Upper
 
-        local shotpart = BodyPartType.Foot_R
 
-        if damagepr == 20 then
-            shotpart = headpart[ZombRand(#headpart)+1]
+        --[[
+		-- takes a random bodypart type from the table and adds injury to it
+		local hitCategory = ZombRand(10)  -- 10 possibilities
+
+        -- takes a random bodypart type from the table and adds injury to it
+		if hitCategory <= 6 then
+			--selectedCategory = "bodyShot"
+			shotpart = bodyShot[ZombRand(#bodyShot) + 1]
+			if clitem then
+                clitem:setCondition(clitem:getCondition()-1)
+            end
+		elseif hitCategory <= 9 then
+			--selectedCategory = "headShot"
+			shotpart = headShot[ZombRand(#headShot) + 1]
+			if clitem then
+                clitem:setCondition(clitem:getCondition()-1)
+            end
+		else
+		   --selectedCategory = "terminalShot"
+		   shotpart = terminalShot[ZombRand(#terminalShot) + 1]
+		   if clitem then
+                clitem:setCondition(clitem:getCondition()-1)
+            end
+		end
+        --]]
+
+
+        if damagepr == headShotDmgZomMultiplier then
+            shotpart = headShot[ZombRand(#headShot)+1]
             local clitem = Playershot:getClothingItem_Head()
             if clitem then
                 clitem:setCondition(clitem:getCondition()-1)
             end
-            
-        elseif damagepr == 2 then
-            shotpart = midpart[ZombRand(#midpart)+1]
+        elseif damagepr == bodyShotDmgZomMultiplier then
+            shotpart = bodyShot[ZombRand(#bodyShot)+1]
 
             local clitem = Playershot:getClothingItem_Torso()
             if clitem then
                 clitem:setCondition(clitem:getCondition()-1)
             end
-
-            
-        elseif damagepr ==1 then
-            shotpart = lowpart[ZombRand(#lowpart)+1]
+        elseif damagepr == footShotDmgZomMultiplier then
+            shotpart = BodyPartType[ZombRand(#BodyPartType)+1]
             local clitem = Playershot:getClothingItem_Feet()
             if clitem then
                 clitem:setCondition(clitem:getCondition()-1)
             end
         end
+
 
         local bodypart = Playershot:getBodyDamage():getBodyPart(shotpart)
         local defense1 = Playershot:getBodyPartClothingDefense(shotpart:index(),true,true)
@@ -75,7 +107,6 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
         -- Playershot:getClothingItem_Back()
         
         if alldefense < 0.5 then
-            
             if bodypart:haveBullet() then
                 local deepWound = bodypart:isDeepWounded()
                 local deepWoundTime = bodypart:getDeepWoundTime()
@@ -98,11 +129,15 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
         Playershot:getBodyDamage():ReduceGeneralHealth(arguments[2]*damagepr*0.6*(1-alldefense))
   
     elseif module == "ATY_shotsfx" then
-        if arguments[2] ==Playershot:getOnlineID() then return end 
+        if arguments[2] == Playershot:getOnlineID() then return end 
         table.insert(Advanced_trajectory.table,arguments[1])
     elseif module == "ATY_reducehealth" then
+        
+        
         Playershot:getBodyDamage():ReduceGeneralHealth(arguments[1])
+
     elseif module == "ATY_cshotzombie" then
+
 
         if Playershot:getOnlineID() == arguments[2] then return end
         local zombies = getCell():getZombieList()
@@ -121,6 +156,9 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
             end
         end
 
+
+
+
     elseif module == "ATY_killzombie" then
         local zombies = getCell():getZombieList()
 
@@ -128,7 +166,10 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
 
             local zombiez = zombies:get(i-1)
             if zombiez:getOnlineID()==arguments[1] then
-                zombiez:Kill(zombiez) 
+
+                zombiez:Kill(zombiez)
+
+            
             end
         end
 

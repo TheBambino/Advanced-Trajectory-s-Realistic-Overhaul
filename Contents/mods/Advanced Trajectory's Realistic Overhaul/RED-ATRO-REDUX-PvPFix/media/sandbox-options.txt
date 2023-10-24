@@ -90,14 +90,6 @@ option Advanced_trajectory.DebugGridMultiplier
 	translation = Advanced_trajectoryDebugGridMultiplier,
 }
 
-option Advanced_trajectory.DebugSayClothingDmg
-{
-	type = boolean,
-	default = false,
-	page = Advanced_trajectory_debug,
-	translation = Advanced_trajectoryDebugSayClothingDmg,
-}
-
 option Advanced_trajectory.XPKillModifier
 {
 	type = double,
