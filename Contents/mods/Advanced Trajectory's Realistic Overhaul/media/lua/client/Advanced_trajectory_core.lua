@@ -163,13 +163,13 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
         else
             -- uses euclidian distance to find distance between target and bullet
             mindistance = (bulletTable[1] - sz:getX())^2 + (bulletTable[2] - sz:getY())^2 
-            print("Mindist <= mindistMod*dmg: ", mindistance, " <= ", mindistModifier*damage)
+            --print("Mindist <= mindistMod*dmg: ", mindistance, " <= ", mindistModifier*damage)
             if  mindistance<=mindistModifier*damage then
                 -- update minzb if mindistance is closer
-                print("Minzb[2]: ", minzb[2])
+                --print("Minzb[2]: ", minzb[2])
                 if mindistance < minzb[2] then
                     minzb = {sz,mindistance}
-                    print("Updated minzb")
+                    --print("Updated minzb")
                 end
             end
         end
@@ -1308,12 +1308,12 @@ function searchAndDmgClothing(player, shotpart, damage)
         end
     end
 
-    print("*********Has Bullet Proof: ", hasBulletProof)
+    print("HAS BULLET PROOF: ", hasBulletProof)
     if hasBulletProof then
         for i = 1, #shotBulletProofItems do
             local item = shotBulletProofItems[i]
             item:setCondition(item:getCondition()-damage)
-            player:addHole(shotBloodPart)
+            --player:addHole(shotBloodPart)
             print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
         end
     else
@@ -1385,17 +1385,10 @@ function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, 
     local bodypart = player:getBodyDamage():getBodyPart(shotpart)
 
     -- float (part, isBite, isBullet)
-    --[[
-    local defense1 = player:getBodyPartClothingDefense(shotpart:index(),true,true)
-    local defense2 = player:getBodyPartClothingDefense(shotpart:index(),false,false)
-    local defense3 = player:getBodyPartClothingDefense(shotpart:index(),true,false)
-    local alldefense = (defense1 + defense2*0.5 + defense3*0.5)/150
-    --]]
-
     -- bulletdefense is usually 100
     local defense = player:getBodyPartClothingDefense(shotpart:index(),false,true)
 
-    print(defense)
+    print("BodyPartClothingDefense: ", defense)
 
     if defense < 0.5 then
         print("WOUNDED")
@@ -1533,14 +1526,12 @@ function Advanced_trajectory.checkontick()
 
 
             vt[5] = vt[5] + vt[10]
-           if vt[1] then
+            if vt[1] then
                 vt[1]:setWorldZRotation(vt[5])
             end
 
             vt[4][1] = vt[4][1]+tablenowz12_ * vt[3][1]
             vt[4][2] = vt[4][2]+tablenowz12_ * vt[3][2]
-
-            if  vt["isparabola"] then
 
             if  vt["isparabola"]  then
 
@@ -1651,7 +1642,7 @@ function Advanced_trajectory.checkontick()
                     if isClient() then
                         sendClientCommand("ATY_shotplayer","true",{damagepr,vt[6],Playershot:getOnlineID()})
                     else
-                        damagePlayershot(Playershot, damagepr, vt[6], headShotDmgPlayerMultiplier)
+                        damagePlayershot(Playershot, damagepr, vt[6], Advanced_trajectory.HeadShotDmgPlayerMultiplier, Advanced_trajectory.BodyShotDmgPlayerMultiplier, Advanced_trajectory.FootShotDmgPlayerMultiplier)
                     end
 
                     -- assume player's dead at this point
@@ -1677,7 +1668,7 @@ function Advanced_trajectory.checkontick()
                         vt[19]:Say(getText(saywhat))
                     end
 
-                    damagePlayershot(vt[19], damagezb, 1, headShotDmgZomMultiplier * vt[6]*0.1, bodyShotDmgZomMultiplier * vt[6]*0.1, footShotDmgZomMultiplier * vt[6]*0.1)
+                    damagePlayershot(vt[19], damagezb, 1, Advanced_trajectory.HeadShotDmgZomMultiplier * vt[6] * 0.1, Advanced_trajectory.BodyShotDmgZomMultiplier * vt[6] * 0.1, Advanced_trajectory.FootShotDmgZomMultiplier * vt[6] * 0.1)
 
                     if vt["wallcarzombie"] or vt[9] == "Grenade"then
 
