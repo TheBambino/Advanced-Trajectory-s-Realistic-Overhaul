@@ -138,6 +138,22 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
                         prtable[zombieOrPlayer] = 1  -- Add to player table
                     end
                 end
+
+            -- make exception if bullet and player are on the same floor to prevent issue with blindness
+            elseif sq and math.floor(bulletTable[3]) == math.floor(playerTable[3]) then
+                local movingObjects = sq:getMovingObjects()
+
+                -- Iterate through moving objects in the grid square
+                for zz = 1, movingObjects:size() do
+                    local zombieOrPlayer = movingObjects:get(zz - 1)
+
+                    -- Check if the object is an IsoZombie or IsoPlayer
+                    if instanceof(zombieOrPlayer, "IsoZombie") then
+                        zbtable[zombieOrPlayer] = 1  -- Add to zombie table
+                    elseif isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
+                        prtable[zombieOrPlayer] = 1  -- Add to player table
+                    end
+                end
             end
         end
     end
@@ -1108,6 +1124,20 @@ function Advanced_trajectory.OnPlayerUpdate()
                             -- Check if the object is an IsoZombie or IsoPlayer
                             if instanceof(zombie, "IsoZombie") or instanceof(zombie, "IsoPlayer") then
                                 -- Set the aim level and flag, then return
+                                Advanced_trajectory.aimlevels = Z
+                                isAimingObject = true
+                                return
+                            end
+                        end
+
+                    -- make exception if bullet and player are on the same floor to prevent issue with blindness
+                    elseif sq and Z == playerZ then
+                        local movingObjects = sq:getMovingObjects()
+
+                        for zz = 1, movingObjects:size() do
+                            local zombie = movingObjects:get(zz - 1)
+
+                            if instanceof(zombie, "IsoZombie") or instanceof(zombie, "IsoPlayer") then
                                 Advanced_trajectory.aimlevels = Z
                                 isAimingObject = true
                                 return
