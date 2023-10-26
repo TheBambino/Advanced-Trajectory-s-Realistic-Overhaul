@@ -1,6 +1,6 @@
 Advanced_trajectory = {}
-Advanced_trajectory.table={}
-Advanced_trajectory.boomtable={}
+Advanced_trajectory.table = {}
+Advanced_trajectory.boomtable = {}
 Advanced_trajectory.aimcursor=nil
 Advanced_trajectory.aimcursorsq = nil
 Advanced_trajectory.panel = {}
@@ -95,41 +95,50 @@ end
 
 function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,playerTable)
 
+    -- Initialize tables to store zombies and players
     local zbtable = {}  -- zombie table
     local prtable = {}  -- player table
 
     local gridMultiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugGridMultiplier"):getValue()
 
-    local playerDir = getPlayer():getForwardDirection():getDirection()*360/(2*math.pi)
+    local player = getPlayer()
+    local playerNum = player:getPlayerNum()
+
+    local playerDir = player:getForwardDirection():getDirection()*360/(2*math.pi)
     --print("Bullet pos: ", math.floor(bulletTable[1]), " | ", math.floor(bulletTable[2]))
     --print("Player pos: ", math.floor(playerTable[1]), " | ", math.floor(playerTable[2]))
-    
-    -- if same player cell and looking SE direction ish, set true
-    -- for loop that acts as a 3x3 grid that is halved for the bullet and checks the area for zombies/players
-    for kz = -1,1 do    -- x pos
-        for vz = -1,1 do    -- y pos
 
-                local sq = getCell():getGridSquare(bulletTable[1]+kz*gridMultiplier, bulletTable[2]+vz*gridMultiplier, bulletTable[3])
-                if sq then
+    -- Define grid dimensions
+    gridMultiplier = 2  -- Adjust this value as needed
 
-                    local movingObjects = sq:getMovingObjects()
-                    --print(movingObjects)
 
-                    for zz=1,movingObjects:size() do
-                        -- i'm guessing movingObjects is a java array considering you go to index 0
-                        local zombiez = movingObjects:get(zz-1)
-                        --print(zombiez)
+    -- Loop through a 3x3 grid centered around the bullet
+    for kz = -1, 1 do  -- X position
+        for vz = -1, 1 do  -- Y position
+            -- Calculate the coordinates for the current grid square
+            local x = bulletTable[1] + kz * gridMultiplier
+            local y = bulletTable[2] + vz * gridMultiplier
+            local z = bulletTable[3]
 
-                        -- add to designated table if instanceOf(whatever)
-                        if instanceof(zombiez,"IsoZombie") then
-                            --print("addzombie")
-                            zbtable[zombiez] = 1
-                        elseif isshotplayer and  instanceof(zombiez,"IsoPlayer") then
-                            prtable[zombiez] = 1
-                        end
+            -- Get the grid square at the calculated coordinates
+            local sq = getCell():getGridSquare(x, y, z)
+
+            -- Check if the grid square is valid and can be seen by the player
+            if sq and sq:isCanSee(playerNum) then
+                local movingObjects = sq:getMovingObjects()
+
+                -- Iterate through moving objects in the grid square
+                for zz = 1, movingObjects:size() do
+                    local zombieOrPlayer = movingObjects:get(zz - 1)
+
+                    -- Check if the object is an IsoZombie or IsoPlayer
+                    if instanceof(zombieOrPlayer, "IsoZombie") then
+                        zbtable[zombieOrPlayer] = 1  -- Add to zombie table
+                    elseif isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
+                        prtable[zombieOrPlayer] = 1  -- Add to player table
                     end
                 end
-            --end
+            end
         end
     end
 
@@ -1030,10 +1039,10 @@ function Advanced_trajectory.OnPlayerUpdate()
         --print("FocusCounterSpeed: ", focusCounterSpeed)
         --print("Min/Max/Aimnum: ",Advanced_trajectory.minaimnum, " / ", Advanced_trajectory.maxaimnum, " / ", Advanced_trajectory.aimnum)   
         --------------------------------------------------------------------
-        if not Advanced_trajectory.panel.instance and  getSandboxOptions():getOptionByName("Advanced_trajectory.aimpoint"):getValue()  then
-            Advanced_trajectory.panel.instance = Advanced_trajectory.panel:new(0,0,200,200)
+        if not Advanced_trajectory.panel.instance and getSandboxOptions():getOptionByName("Advanced_trajectory.aimpoint"):getValue() then
+            Advanced_trajectory.panel.instance = Advanced_trajectory.panel:new(0, 0, 200, 200)
             Advanced_trajectory.panel.instance:initialise()
-            Advanced_trajectory.panel.instance:addToUIManager() 
+            Advanced_trajectory.panel.instance:addToUIManager()
         end
 
         local isspwaepon = Advanced_trajectory.Advanced_trajectory[weaitem:getFullType()]
@@ -1056,96 +1065,64 @@ function Advanced_trajectory.OnPlayerUpdate()
                 Advanced_trajectory.aimcursor = ISThorowitemToCursor:new("", "", player,weaitem)
                 getCell():setDrag(Advanced_trajectory.aimcursor, 0)
             end
-        end 
+        end
 
 
-        local dx = getMouseXScaled();
-        local dy = getMouseYScaled();
+        -- Get the scaled mouse coordinates
+        local dx = getMouseXScaled()
+        local dy = getMouseYScaled()
+
+        -- Get the player's Z position and player number
         local playerZ = math.floor(player:getZ())
+        local playerNum = player:getPlayerNum()
 
+        -- Initialize a flag to check if we are aiming at an object
+        local isAimingObject = false
 
-        local isaimobject =false
+        -- Loop through Z levels from 0 to 7
+        for Z = 0, 7 do
+            -- Calculate the distance difference between Z level and player's Z position
+            local delDis = Z - playerZ
 
-        for Z=0,7 do
+            -- Calculate world coordinates adjusted for the Z level
+            local wx, wy = ISCoordConversion.ToWorld(dx - 3 * delDis, dy - 3 * delDis, Z)
+            wx, wy = math.floor(wx), math.floor(wy)
 
-            -- print(dx,"---",x)
-            local deldis = Z - playerZ
+            -- Get the current world cell
+            local cell = getWorld():getCell()
 
+            -- Iterate through nearby Y and Z offsets
+            for yz = -1, 1 do
+                for lz = -1, 1 do
+                    -- Get the grid square at the adjusted position
+                    local sq = cell:getGridSquare(wx + 2.2 + yz, wy + 2.2 + lz, Z)
 
-            local wx, wy = ISCoordConversion.ToWorld(dx-3*deldis, dy-3*deldis, Z);
-            wx = math.floor(wx);
-            wy = math.floor(wy);
-        
-            
-        
-            local cell = getWorld():getCell();
-            
-
-
-            for yz=-1,1 do
-
-
-
-
-                for lz = -1 ,1 do
-
-
-                    local sq = cell:getGridSquare(wx+2.2 + yz, wy+2.2 + lz, Z);
-                    if sq then
-
+                    -- Check if the grid square is valid and can be seen by the player
+                    if sq and sq:isCanSee(playerNum) then
                         local movingObjects = sq:getMovingObjects()
-                        -- print(movingObjects)
-        
-                        for zz=1,movingObjects:size() do
-                            local zombiez = movingObjects:get(zz-1)
-                            -- print(zombiez)
-                            if instanceof(zombiez,"IsoZombie") then
-        
-        
-                                -- player:Say("get"..tostring(Z))
-        
+
+                        -- Iterate through moving objects in the grid square
+                        for zz = 1, movingObjects:size() do
+                            local zombie = movingObjects:get(zz - 1)
+
+                            -- Check if the object is an IsoZombie or IsoPlayer
+                            if instanceof(zombie, "IsoZombie") or instanceof(zombie, "IsoPlayer") then
+                                -- Set the aim level and flag, then return
                                 Advanced_trajectory.aimlevels = Z
-        
-                                isaimobject = true
-        
-                                return 
-        
-        
-        
-                            
-                            elseif instanceof(zombiez,"IsoPlayer") then
-        
-                                -- player:Say("get"..tostring(Z))
-        
-                                Advanced_trajectory.aimlevels = Z
-                                isaimobject = true
+                                isAimingObject = true
                                 return
-                                
-        
-        
-        
                             end
                         end
                     end
-                
-
                 end
-            
-
             end
-
-            
-
-            
-
-            if not isaimobject then
-                Advanced_trajectory.aimlevels = nil
-                
-            end
-
-        
-
         end
+
+        -- If no object is aimed at, reset the aim level
+        if not isAimingObject then
+            Advanced_trajectory.aimlevels = nil
+        end
+
 
         -- print(Advanced_trajectory.aimlevels)
         
