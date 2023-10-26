@@ -2171,19 +2171,23 @@ end
 Events.OnWeaponSwingHitPoint.Add(Advanced_trajectory.OnWeaponSwing)
 
 --function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
+
+----------------------
+-- CREDITS TO LISOLA--
+----------------------
 function Advanced_trajectory.writePVPLog(args)
 	if isDescWritten == false then
 		writeDesc()
 		isDescWritten = true
 	end
 	local shoot, target = getPlayerByOnlineID(args[1]), getPlayerByOnlineID(args[2])
-	local log1 = string.format(("[IPPJPVP] \"%s\" attacks \"%s\" (%s)"), shoot:getUsername(), target:getUsername(), args[3], args[4], args[5], args[6], args[7], args[8])
-	local log2 = string.format(("[IPPJPVP] -> [Damage A - %.3f] [Damage B - %.3f] [Damage C - %.3f] [Critical - %s] [Weapon - %s]"),
+	local log1 = string.format(("[ATROPVP] \"%s\" attacks \"%s\" (%s)"), shoot:getUsername(), target:getUsername(), args[3], args[4], args[5], args[6], args[7], args[8])
+	local log2 = string.format(("[ATROPVP] -> [Damage A - %.3f] [Damage B - %.3f] [Damage C - %.3f] [Critical - %s] [Weapon - %s]"),
 	args[4], args[5], args[6], args[7], args[8])
-	writeLog("IPPJPVP", log1)
-	writeLog("IPPJPVP", log2)
+	writeLog("ATROPVP", log1)
+	writeLog("ATROPVP", log2)
 	if args[9] == true then
-		local killLog = string.format(("[IPPJPVP] \"%s\" killed by \"%s\""), target:getUsername(), shoot:getUsername())
-		writeLog("IPPJPVP", killLog)
+		local killLog = string.format(("[ATROPVP] \"%s\" killed by \"%s\""), target:getUsername(), shoot:getUsername())
+		writeLog("ATROPVP", killLog)
 	end
 end
