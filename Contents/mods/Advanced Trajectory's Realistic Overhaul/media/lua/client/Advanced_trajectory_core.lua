@@ -141,48 +141,16 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
             -- make exception if bullet and player are on the same floor to prevent issue with blindness
             elseif sq and math.floor(bulletTable[3]) == math.floor(playerTable[3]) then
                 local movingObjects = sq:getMovingObjects()
-                local staticObjects = sq:getObjects()
-                local hasWall = false
-
-                -- check for walls on cell
-                if staticObjects then
-                    for i = 1, staticObjects:size() do
-                        local locobject = staticObjects:get(i-1)
-                        local sprite = locobject:getSprite()
-                        if sprite  then
-                            local Properties = sprite:getProperties()
-                            if Properties then
-                                local wallN = Properties:Is(IsoFlagType.WallN)
-                                local doorN = Properties:Is(IsoFlagType.doorN)
-            
-                                local wallNW = Properties:Is(IsoFlagType.WallNW)
-                                local wallSE = Properties:Is(IsoFlagType.WallSE)
-            
-                                local wallW = Properties:Is(IsoFlagType.WallW)
-                                local doorW = Properties:Is(IsoFlagType.doorW)
-
-                                if (wallN or doorN or wallNW or wallSE or wallW or doorW) then
-                                    hasWall = true
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
 
                 for zz = 1, movingObjects:size() do
                     local zombieOrPlayer = movingObjects:get(zz - 1)
 
-                    -- If entity is near a wall and can't be seen, then skip
-                    --print("Can see SQ | Has WALL: ", sq:isCanSee(playerNum), " | ", hasWall)
-                    if not hasWall then
-                        if instanceof(zombieOrPlayer, "IsoZombie") then
-                            zbtable[zombieOrPlayer] = 1 
-                            --numZomsShootable = numZomsShootable + 1
-                        end
-                        if isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
-                            prtable[zombieOrPlayer] = 1  
-                        end
+                    if instanceof(zombieOrPlayer, "IsoZombie") then
+                        zbtable[zombieOrPlayer] = 1 
+                        --numZomsShootable = numZomsShootable + 1
+                    end
+                    if isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
+                        prtable[zombieOrPlayer] = 1  
                     end
                 end
             end
@@ -265,7 +233,7 @@ end
 -- checks the squares that the bullet travels
 -- this function determines whether bullets should "break" meaning they stop, pretty much a collision checker
 -- bullet square, dirc, bullet offset, player offset, nonsfx
-function Advanced_trajectory.checkiswallordoor(square,angle,bulletPosition,playerPosition,nosfx)
+function Advanced_trajectory.checkiswallordoor(square,bulletAngle,bulletPosition,playerPosition,nosfx)
     --print("----SQUARE---: ",   square:getX(), "  //  ", square:getY())
 
     local bulletPosFloorX = math.floor(bulletPosition[1])
@@ -279,12 +247,21 @@ function Advanced_trajectory.checkiswallordoor(square,angle,bulletPosition,playe
     local playerPosX = playerPosition[1]
     local playerPosY = playerPosition[2]
 
+    local angle = bulletAngle
+    if angle > 180 then
+        angle = -180 + (angle-180)
+    end
+    if angle < -180 then
+        angle = 180 + (angle+180)
+    end
+
     -- direction from -pi to pi OR -180 to 180 deg
     -- N (top left corner): pi,-pi  (180, -180)
     -- W (bottom left): pi/2 (90)
     -- E (top right): -pi/2 (-90)
     -- S (bottom right corner): 0
-    --print("angle: ",          angle)
+    --print("initial angle: ",          bulletAngle)
+    --print("after angle: ",          angle)
     --print("bulletPosFl: ", bulletPosFloorX, "  //  ", bulletPosFloorY)
 
     -- walk towards bot right means X+
@@ -398,7 +375,7 @@ function Advanced_trajectory.checkiswallordoor(square,angle,bulletPosition,playe
                     elseif wallW or (doorW and  not locobject:IsOpen()) then
                         isAngleTrue = (angle >=0 and angle <= 90) or (angle <=0 and angle >= -90)
                         -- facing south into wallW
-                        if (isAngleTrue) and playerPosX  < square:getX() then
+                        if (isAngleTrue) and playerPosX < square:getX() then
                             --print("----Facing SOUTH into wallW----")
 
                             if nosfx then return true end
@@ -408,7 +385,7 @@ function Advanced_trajectory.checkiswallordoor(square,angle,bulletPosition,playe
 
                         isAngleTrue = (angle >=90 and angle <= 180) or (angle <=-90 and angle >= -180)
                         -- facing north into wallW
-                        if (isAngleTrue) and playerPosX  > square:getX() then
+                        if (isAngleTrue) and playerPosX > square:getX() then
                             --print("----Facing NORTH into wallW----")
                             if nosfx then return true end
                             getSoundManager():PlayWorldSoundWav("BreakObject",square, 0.5, 2, 0.5, true);
@@ -632,6 +609,7 @@ function Advanced_trajectory.OnPlayerUpdate()
 
         Mouse.setCursorVisible(false)
         
+        --print(player:getForwardDirection():getDirection()*360/(2*math.pi))
 
         -- print(getPlayer():getCoopPVP())
 
