@@ -92,7 +92,6 @@ end
 --BULLET HIT ZOMBIE/PLAYER DETECTION ?? FUNC SECT---
 ----------------------------------------------------
 -- NOTES: bulletTable (position table of offsets xyz {}); damage (is either 1+angleammooff,2 or 3 where 1 is head, 2 is body, 3 is feet); isshotplayer (bool for if players can shoot each other)
-
 function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,playerTable)
 
     -- Initialize tables to store zombies and players
@@ -110,7 +109,7 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
 
     -- Define grid dimensions
     gridMultiplier = 2  -- Adjust this value as needed
-
+    --local numZomsShootable = 0
 
     -- Loop through a 3x3 grid centered around the bullet
     for kz = -1, 1 do  -- X position
@@ -142,23 +141,56 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
             -- make exception if bullet and player are on the same floor to prevent issue with blindness
             elseif sq and math.floor(bulletTable[3]) == math.floor(playerTable[3]) then
                 local movingObjects = sq:getMovingObjects()
+                local staticObjects = sq:getObjects()
+                local hasWall = false
 
-                -- Iterate through moving objects in the grid square
+                -- check for walls on cell
+                if staticObjects then
+                    for i = 1, staticObjects:size() do
+                        local locobject = staticObjects:get(i-1)
+                        local sprite = locobject:getSprite()
+                        if sprite  then
+                            local Properties = sprite:getProperties()
+                            if Properties then
+                                local wallN = Properties:Is(IsoFlagType.WallN)
+                                local doorN = Properties:Is(IsoFlagType.doorN)
+            
+                                local wallNW = Properties:Is(IsoFlagType.WallNW)
+                                local wallSE = Properties:Is(IsoFlagType.WallSE)
+            
+                                local wallW = Properties:Is(IsoFlagType.WallW)
+                                local doorW = Properties:Is(IsoFlagType.doorW)
+
+                                if (wallN or doorN or wallNW or wallSE or wallW or doorW) then
+                                    hasWall = true
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+
                 for zz = 1, movingObjects:size() do
                     local zombieOrPlayer = movingObjects:get(zz - 1)
 
-                    -- Check if the object is an IsoZombie or IsoPlayer
-                    if instanceof(zombieOrPlayer, "IsoZombie") then
-                        zbtable[zombieOrPlayer] = 1  -- Add to zombie table
-                    elseif isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
-                        prtable[zombieOrPlayer] = 1  -- Add to player table
+                    -- If entity is near a wall and can't be seen, then skip
+                    --print("Can see SQ | Has WALL: ", sq:isCanSee(playerNum), " | ", hasWall)
+                    if not hasWall then
+                        if instanceof(zombieOrPlayer, "IsoZombie") then
+                            zbtable[zombieOrPlayer] = 1 
+                            --numZomsShootable = numZomsShootable + 1
+                        end
+                        if isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
+                            prtable[zombieOrPlayer] = 1  
+                        end
                     end
                 end
             end
         end
     end
 
-    --print("Zombie Table Size: ", #zbtable)
+    --print("Num Zoms Shootable: ", numZomsShootable)
+    --print("*********END**********")
 
     -- minimum distance from player to target
     local mindistance = 0
@@ -284,26 +316,6 @@ function Advanced_trajectory.checkiswallordoor(square,angle,bulletPosition,playe
 
                     local wallW = Properties:Is(IsoFlagType.WallW)
                     local doorW = Properties:Is(IsoFlagType.doorW)
-                    
-                    
-                    --local doorWallN = Properties:Is(IsoFlagType.doorWallN)
-                    --local doorWallW = Properties:Is(IsoFlagType.doorWallW)
-
-                    --[[
-                    if wallN or wallNW or wallSE or wallW then
-                        print("****Wall N/NW/SE/W****: ", wallN, "/", wallNW, "/", wallSE, "/", wallW)
-                        --return true
-                    end
-                    
-                    if doorN or doorW then
-                        print("****Door N/W****: ", doorN, "/", doorW)
-                    end
-
-                    if doorWallN or doorWallW then
-                        print("****doorWallN/doorWallW****: ", doorWallN, "/", doorWallW)
-                        --return true
-                    end
-                    ]]
 
                     -- if the locoobject is "IsoWindow" which is a class and it's not smashed, smash it
                     if instanceof(locobject,"IsoWindow") and not locobject:isSmashed() and not locobject:IsOpen() then
@@ -1303,7 +1315,7 @@ function searchAndDmgClothing(player, shotpart, damage)
                     
                     -- check if has bullet proof armor
                     local bulletDefense = item:getBulletDefense()
-                    print("Bullet Defense: ", bulletDefense)
+                    --print("Bullet Defense: ", bulletDefense)
                     if bulletDefense > 0 then
                         hasBulletProof = true
                         table.insert(shotBulletProofItems, item)
@@ -1315,20 +1327,20 @@ function searchAndDmgClothing(player, shotpart, damage)
         end
     end
 
-    print("HAS BULLET PROOF: ", hasBulletProof)
+    --print("HAS BULLET PROOF: ", hasBulletProof)
     if hasBulletProof then
         for i = 1, #shotBulletProofItems do
             local item = shotBulletProofItems[i]
             item:setCondition(item:getCondition()-damage)
             --player:addHole(shotBloodPart)
-            print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
+            --print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
         end
     else
         for i = 1, #shotNormalItems do
             local item = shotNormalItems[i]
             item:setCondition(item:getCondition()-damage)
             player:addHole(shotBloodPart, true)
-            print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
+            --print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
         end
     end
 end
@@ -1395,10 +1407,10 @@ function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, 
     -- bulletdefense is usually 100
     local defense = player:getBodyPartClothingDefense(shotpart:index(),false,true)
 
-    print("BodyPartClothingDefense: ", defense)
+    --print("BodyPartClothingDefense: ", defense)
 
     if defense < 0.5 then
-        print("WOUNDED")
+        --print("WOUNDED")
         if bodypart:haveBullet() then
             local deepWound = bodypart:isDeepWounded()
             local deepWoundTime = bodypart:getDeepWoundTime()
