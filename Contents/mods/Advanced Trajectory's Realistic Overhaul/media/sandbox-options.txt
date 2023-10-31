@@ -17,27 +17,27 @@ option Advanced_trajectory.Enablethrow
 {type = boolean,default = true,page = Advanced_trajectory,translation = Advanced_trajectoryEnablethrow,}
 
 option Advanced_trajectory.callshot
-{type = boolean,default = false,page = Advanced_trajectory,translation = Advanced_trajectorycallshot,}
+{type = boolean,default = false,page = Advanced_trajectory_debug,translation = Advanced_trajectorycallshot,}
 
 /* ------Enable player damage------ */
 option Advanced_trajectory.EnablePlayerDamage
-{type = boolean,default = false,page = Advanced_trajectory,translation = Advanced_trajectoryEnablePlayerDamage,}
+{type = boolean,default = false,page = Advanced_trajectory_damage,translation = Advanced_trajectoryEnablePlayerDamage,}
 
 option AT_VehicleDamageenable
-{type = boolean,page = Advanced_trajectory,translation = ATvdenable,default = true,}
+{type = boolean,page = Advanced_trajectory_damage,translation = ATvdenable,default = true,}
 
 option ATY_safezone_protect
-{type = boolean,page = Advanced_trajectory,translation = ATY_safezone_protect,default = true,}
+{type = boolean,page = Advanced_trajectory_damage,translation = ATY_safezone_protect,default = true,}
 
 option ATY_nonpvp_protect
-{type = boolean,page = Advanced_trajectory,translation = ATY_nonpvp_protect,default = true,}
+{type = boolean,page = Advanced_trajectory_damage,translation = ATY_nonpvp_protect,default = true,}
 
 /* ------Display damage to zombie------ */
 option ATY_damagedisplay
-{type = boolean,page = Advanced_trajectory,translation = ATY_damagedisplay,default = false,}
+{type = boolean,page = Advanced_trajectory_damage,translation = ATY_damagedisplay,default = false,}
 
 option AT_Blood
-{type = integer,page = Advanced_trajectory,translation = ATblood,default = 100, min = 0, max = 100,}
+{type = integer,page = Advanced_trajectory_damage,translation = ATblood,default = 100, min = 0, max = 100,}
 
 /* ------Damage multiplier (overall)------ */
 option Advanced_trajectory.ATY_damage
@@ -46,7 +46,7 @@ option Advanced_trajectory.ATY_damage
 	min = 0,
 	max = 100,
 	default = 1,
-	page = Advanced_trajectory,
+	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectoryATY_damage,
 }
 
@@ -70,14 +70,24 @@ option Advanced_trajectory.DebugSpawnOffset
 	translation = Advanced_trajectoryDebugSpawnOffset,
 }
 
-option Advanced_trajectory.DebugMindistCondition
+option Advanced_trajectory.DebugZomMindistCondition
 {
 	type = double,
 	min = 0,
 	max = 10,
 	default = 0.42,
 	page = Advanced_trajectory_debug,
-	translation = Advanced_trajectoryDebugMindistCondition,
+	translation = Advanced_trajectoryDebugZomMindistCondition,
+}
+
+option Advanced_trajectory.DebugPlayerMindistCondition
+{
+	type = double,
+	min = 0,
+	max = 10,
+	default = 0.4,
+	page = Advanced_trajectory_debug,
+	translation = Advanced_trajectoryDebugPlayerMindistCondition,
 }
 
 option Advanced_trajectory.DebugGridMultiplier
@@ -90,12 +100,28 @@ option Advanced_trajectory.DebugGridMultiplier
 	translation = Advanced_trajectoryDebugGridMultiplier,
 }
 
-option Advanced_trajectory.DebugSayClothingDmg
+option Advanced_trajectory.DebugEnableBow
 {
 	type = boolean,
 	default = false,
 	page = Advanced_trajectory_debug,
-	translation = Advanced_trajectoryDebugSayClothingDmg,
+	translation = Advanced_trajectoryDebugEnableBow,
+}
+
+option Advanced_trajectory.DebugEnableVoodoo
+{
+	type = boolean,
+	default = true,
+	page = Advanced_trajectory_debug,
+	translation = Advanced_trajectoryDebugEnableVoodoo,
+}
+
+option Advanced_trajectory.DebugSayShotPart
+{
+	type = boolean,
+	default = true,
+	page = Advanced_trajectory_debug,
+	translation = Advanced_trajectoryDebugSayShotPart,
 }
 
 option Advanced_trajectory.XPKillModifier
@@ -158,13 +184,40 @@ option Advanced_trajectory.minaimnumModifier
 	translation = Advanced_trajectoryminaimnumModifier,
 }
 
+option Advanced_trajectory.maxDefenseReduction
+{
+	type = double,
+	min = 0,
+	max = 1,
+	default = 0.8,
+	page = Advanced_trajectory_damage,
+	translation = Advanced_trajectorymaxDefenseReduction,
+}
+option Advanced_trajectory.headShotIncChance
+{
+	type = double,
+	min = 0,
+	max = 100,
+	default = 20,
+	page = Advanced_trajectory_damage,
+	translation = Advanced_trajectoryheadShotIncChance,
+}
+option Advanced_trajectory.footShotIncChance
+{
+	type = double,
+	min = 0,
+	max = 100,
+	default = 10,
+	page = Advanced_trajectory_damage,
+	translation = Advanced_trajectoryfootShotIncChance,
+}
 option Advanced_trajectory.headShotDmgZomMultiplier
 {
 	type = double,
 	min = 0,
 	max = 100,
-	default = 15,
-	page = Advanced_trajectory,
+	default = 10,
+	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectoryheadShotDmgZomMultiplier,
 }
 option Advanced_trajectory.bodyShotDmgZomMultiplier
@@ -173,7 +226,7 @@ option Advanced_trajectory.bodyShotDmgZomMultiplier
 	min = 0,
 	max = 100,
 	default = 5,
-	page = Advanced_trajectory,
+	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectorybodyShotDmgZomMultiplier,
 }
 option Advanced_trajectory.footShotDmgZomMultiplier
@@ -182,7 +235,7 @@ option Advanced_trajectory.footShotDmgZomMultiplier
 	min = 0,
 	max = 100,
 	default = 1,
-	page = Advanced_trajectory,
+	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectoryfootShotDmgZomMultiplier,
 }
 
@@ -192,7 +245,7 @@ option Advanced_trajectory.headShotDmgPlayerMultiplier
 	min = 0,
 	max = 100,
 	default = 15,
-	page = Advanced_trajectory,
+	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectoryheadShotDmgPlayerMultiplier,
 }
 option Advanced_trajectory.bodyShotDmgPlayerMultiplier
@@ -201,7 +254,7 @@ option Advanced_trajectory.bodyShotDmgPlayerMultiplier
 	min = 0,
 	max = 100,
 	default = 5,
-	page = Advanced_trajectory,
+	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectorybodyShotDmgPlayerMultiplier,
 }
 option Advanced_trajectory.footShotDmgPlayerMultiplier
@@ -210,8 +263,28 @@ option Advanced_trajectory.footShotDmgPlayerMultiplier
 	min = 0,
 	max = 100,
 	default = 2,
-	page = Advanced_trajectory,
+	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectoryfootShotDmgPlayerMultiplier,
+}
+
+option Advanced_trajectory.critChanceModifierShotgunsOnly
+{
+	type = double,
+	min = 0,
+	max = 100,
+	default = 10,
+	page = Advanced_trajectory_damage,
+	translation = Advanced_trajectorycritChanceModifierShotgunsOnly,
+}
+
+option Advanced_trajectory.critChanceModifier
+{
+	type = double,
+	min = 0,
+	max = 100,
+	default = 1,
+	page = Advanced_trajectory_damage,
+	translation = Advanced_trajectorycritChanceModifier,
 }
 
 option Advanced_trajectory.bulletspeed
@@ -262,26 +335,6 @@ option Advanced_trajectory.shotgundivision
 	default = 0.1,
 	page = Advanced_trajectory,
 	translation = Advanced_trajectoryshotgundivision,
-}
-
-option Advanced_trajectory.critChanceModifierShotgunsOnly
-{
-	type = double,
-	min = 0,
-	max = 100,
-	default = 10,
-	page = Advanced_trajectory,
-	translation = Advanced_trajectorycritChanceModifierShotgunsOnly,
-}
-
-option Advanced_trajectory.critChanceModifier
-{
-	type = double,
-	min = 0,
-	max = 100,
-	default = 1,
-	page = Advanced_trajectory,
-	translation = Advanced_trajectorycritChanceModifier,
 }
 
 option Advanced_trajectory.moveeffect

@@ -1,6 +1,7 @@
 Sandbox_EN = {
 
     Sandbox_Advanced_trajectory = "Advanced Trajectory (MAIN)",
+	Sandbox_Advanced_trajectory_damage = "Advanced Trajectory (DAMAGE)",
 	Sandbox_Advanced_trajectory_moodles = "Advanced Trajectory (MOODLES)",
 	Sandbox_Advanced_trajectory_crosshair = "Advanced Trajectory (CROSSHAIR)",
 	Sandbox_Advanced_trajectory_debug = "Advanced Trajectory (DEBUG / DONT TOUCH)",
@@ -26,7 +27,34 @@ Sandbox_EN = {
 	Sandbox_ATY_damagedisplay =  "Enable Damage Display",
 	Sandbox_Advanced_trajectoryATY_damage = "Damage Multipler / ATY damage",
 	Sandbox_Advanced_trajectoryATY_damage_tooltip = "Multiplies base damage of bullet.",
+	Sandbox_Advanced_trajectorymaxDefenseReduction = "Max Defense (Max Damage Reduction Multiplier | PVP)",
+	Sandbox_Advanced_trajectorymaxDefenseReduction_tooltip = "ex. 0.9 means reduces incoming damage by 90% when armor is maxed; applies to armor",
 
+	Sandbox_Advanced_trajectoryheadShotIncChance = "Increased Headshot Chance (PVP)",
+	Sandbox_Advanced_trajectoryheadShotIncChance_tooltip = "If dealt headshot, increase chance of wounding head. (ex. 20 means percentage of wounding head is 30% (20 + 10))",
+
+	Sandbox_Advanced_trajectoryheadShotIncChance = "Increased Footshot Chance (PVP)",
+	Sandbox_Advanced_trajectoryheadShotIncChance_tooltip = "If dealt footshot, increase chance of wounding legs/groin. (ex. 10 means percentage of wounding foot is 20% (10 + 10))",
+
+	Sandbox_Advanced_trajectoryheadShotDmgZomMultiplier = "Headshot Damage Multiplier (PVE)",
+	Sandbox_Advanced_trajectoryheadShotDmgZomMultiplier_tooltip = "Multiplier on base damage for headshot",
+	Sandbox_Advanced_trajectorybodyShotDmgZomMultiplier = "Bodyshot Damage Multiplier (PVE)",
+	Sandbox_Advanced_trajectorybodyShotDmgZomMultiplier_tooltip = "Multiplier on base damage for bodyshot",
+	Sandbox_Advanced_trajectoryfootShotDmgZomMultiplier = "Footshot Damage Multiplier (PVE)",
+	Sandbox_Advanced_trajectoryfootShotDmgZomMultiplier_tooltip = "Multiplier on base damage for footshot",
+	Sandbox_Advanced_trajectoryheadShotDmgPlayerMultiplier = "Headshot Damage Multiplier (PVP)",
+	Sandbox_Advanced_trajectoryheadShotDmgPlayerMultiplier_tooltip = "Multiplier on base damage for headshot",
+	Sandbox_Advanced_trajectorybodyShotDmgPlayerMultiplier = "Bodyshot Damage Multiplier (PVP)",
+	Sandbox_Advanced_trajectorybodyShotDmgPlayerMultiplier_tooltip = "Multiplier on base damage for bodyshot",
+	Sandbox_Advanced_trajectoryfootShotDmgPlayerMultiplier = "Footshot Damage Multiplier (PVP)",
+	Sandbox_Advanced_trajectoryfootShotDmgPlayerMultiplier_tooltip = "Multiplier on base damage for footshot",
+
+
+	Sandbox_Advanced_trajectorycritChanceModifier = "Critchance Modifier",
+	Sandbox_Advanced_trajectorycritChanceModifier_tooltip = "Bloom affects crit chance. This is a multiplier to that. Set to 0 for better chances of crit.",
+
+	Sandbox_Advanced_trajectorycritChanceModifierShotgunsOnly = "Critchance Modifier (Shotguns)",
+	Sandbox_Advanced_trajectorycritChanceModifierShotgunsOnly_tooltip = "Shotguns crit chance is only affected by their stat and aiming level (not bloom). Default value is 10 meaning the game decides a random value from 1 to (100 - 10) and if value is <= crit stat, then crit.",
 
 	Sandbox_Advanced_trajectorycrosshairRedMain = "Crosshair Main Red Value",
 	Sandbox_Advanced_trajectorycrosshairRedMain_tooltip = "Linked to crosshair color. Pick a color value from 0 to 255 and divide it by 255, must be from 0 to 1.",
@@ -47,7 +75,8 @@ Sandbox_EN = {
 	Sandbox_Advanced_trajectoryXPHitModifier = "Flat XP From Zombie Hit",
 
 	Sandbox_Advanced_trajectorybowBreakChance = "Chance of arrow/bolt breaking (Brita's) when bloom is 0",
-
+	
+	Sandbox_Advanced_trajectoryMaxProjCone = "Max cone spread",
 	Sandbox_Advanced_trajectorymaxaimnum = "Max bloom / Maxaimnum",
 	Sandbox_Advanced_trajectorymaxaimnum_tooltip = "Value that limits how much bloom is added to crosshair. Higher means larger possible bloom.",
 
@@ -73,20 +102,6 @@ Sandbox_EN = {
 	Sandbox_Advanced_trajectoryshotgunDistanceModifier = "Shotgun Distance Modifier",
 	Sandbox_Advanced_trajectoryshotgunDistanceModifier_tooltip = "Multiplier on base stat (range) of shotgun. Default value is 0.75 which means 75% of vanilla's range.",
 
-	Sandbox_Advanced_trajectoryheadShotDmgZomMultiplier = "Headshot Damage Multiplier (zombie)",
-	Sandbox_Advanced_trajectoryheadShotDmgZomMultiplier_tooltip = "Multiplier on base damage for headshot",
-	Sandbox_Advanced_trajectorybodyShotDmgZomMultiplier = "Bodyshot Damage Multiplier (zombie)",
-	Sandbox_Advanced_trajectorybodyShotDmgZomMultiplier_tooltip = "Multiplier on base damage for bodyshot",
-	Sandbox_Advanced_trajectoryfootShotDmgZomMultiplier = "Footshot Damage Multiplier (zombie)",
-	Sandbox_Advanced_trajectoryfootShotDmgZomMultiplier_tooltip = "Multiplier on base damage for footshot",
-
-	Sandbox_Advanced_trajectoryheadShotDmgPlayerMultiplier = "Headshot Damage Multiplier (player)",
-	Sandbox_Advanced_trajectoryheadShotDmgPlayerMultiplier_tooltip = "Multiplier on base damage for headshot",
-	Sandbox_Advanced_trajectorybodyShotDmgPlayerMultiplier = "Bodyshot Damage Multiplier (player)",
-	Sandbox_Advanced_trajectorybodyShotDmgPlayerMultiplier_tooltip = "Multiplier on base damage for bodyshot",
-	Sandbox_Advanced_trajectoryfootShotDmgPlayerMultiplier = "Footshot Damage Multiplier (player)",
-	Sandbox_Advanced_trajectoryfootShotDmgPlayerMultiplier_tooltip = "Multiplier on base damage for footshot",
-
 	Sandbox_Advanced_trajectoryreloadEffectModifier = "Reload Effect Modifier",
 	Sandbox_Advanced_trajectoryreloadEffectModifier_tooltip = "Value affects how much bloom is added when reloading and racking firearm.",
 
@@ -107,12 +122,6 @@ Sandbox_EN = {
 
 	Sandbox_Advanced_trajectoryrecoilDelayModifier = "Recoil Delay Modifier (linked to Focus Counter Speed)",
 	Sandbox_Advanced_trajectoryrecoilDelayModifier_tooltip = "Part of the focus mechanic. Weapon's recoil delay affects how long it takes for character to recover from recoil and this is a multiplier of that. Set to 0 to ignore weapon's recoil delay stat.",
-
-	Sandbox_Advanced_trajectorycritChanceModifier = "Critchance Modifier",
-	Sandbox_Advanced_trajectorycritChanceModifier_tooltip = "Bloom affects crit chance. This is a multiplier to that. Set to 0 for better chances of crit.",
-
-	Sandbox_Advanced_trajectorycritChanceModifierShotgunsOnly = "Critchance Modifier (Shotguns)",
-	Sandbox_Advanced_trajectorycritChanceModifierShotgunsOnly_tooltip = "Shotguns crit chance is only affected by their stat and aiming level (not bloom). Default value is 10 meaning the game decides a random value from 1 to (100 - 10) and if value is <= crit stat, then crit.",
 
 	Sandbox_Advanced_trajectoryshotgundivision = "Shotgun Splitting Angle",
 	Sandbox_Advanced_trajectoryshotgundivision_tooltip = "Value affects shotgun spread. The lower the value, the more narrow the spread.",

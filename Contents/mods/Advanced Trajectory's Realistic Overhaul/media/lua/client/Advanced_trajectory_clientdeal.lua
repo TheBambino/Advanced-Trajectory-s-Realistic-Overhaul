@@ -1,10 +1,12 @@
 require "Advanced_trajectory_core"
 
-function OldSearchAndDmgClothing(player, shotpart, damage)
-    --local sayDamage = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSayClothingDmg"):getValue()
+-------------------------------------------------
+--DAMAGE CLOTHING COVERING THE SHOT BODY PART--
+--------------------------------------------------
+function searchAndDmgClothing(playerShot, shotpart)
 
     local hasBulletProof= false
-    local playerWornInv = player:getWornItems();
+    local playerWornInv = playerShot:getWornItems();
 
     -- use this to compare shot part and covered part
     local nameShotPart = BodyPartType.getDisplayName(shotpart)
@@ -12,31 +14,34 @@ function OldSearchAndDmgClothing(player, shotpart, damage)
     -- use this to find coveredPart
     local strShotPart = BodyPartType.ToString(shotpart)
 
+    local shotBloodPart = nil
+
     local shotBulletProofItems = {}
     local shotNormalItems = {}
 
-    for i = 0, playerWornInv:size() - 1 do
-        local item = playerWornInv:getItemByIndex(i)
+    for i=0, playerWornInv:size()-1 do
+        local item = playerWornInv:getItemByIndex(i);
 
         if item and instanceof(item, "Clothing") then
             local listBloodClothTypes = item:getBloodClothingType()
 
             -- arraylist of BloodBodyPartTypes
-            local listOfCoveredAreas = BloodClothingType.getCoveredParts(listBloodClothTypes)
+            local listOfCoveredAreas = BloodClothingType.getCoveredParts(listBloodClothTypes)   
     
             -- size of list
-            local areaCount = BloodClothingType.getCoveredPartCount(listBloodClothTypes)
+            local areaCount = BloodClothingType.getCoveredPartCount(listBloodClothTypes)   
     
-            for i = 0, areaCount-1 do
+            for i=0, areaCount-1 do
                 -- returns BloodBodyPartType
                 local coveredPart = listOfCoveredAreas:get(i)
                 local nameCoveredPart = coveredPart:getDisplayName()
     
                 if nameCoveredPart == nameShotPart then
+                    shotBloodPart = coveredPart
                     
                     -- check if has bullet proof armor
                     local bulletDefense = item:getBulletDefense()
-                    print("Bullet Defense: ", bulletDefense)
+                    --print("Bullet Defense: ", bulletDefense)
                     if bulletDefense > 0 then
                         hasBulletProof = true
                         table.insert(shotBulletProofItems, item)
@@ -48,97 +53,56 @@ function OldSearchAndDmgClothing(player, shotpart, damage)
         end
     end
 
-    print("*********Has Bullet Proof: ", hasBulletProof)
+    --print("HAS BULLET PROOF: ", hasBulletProof)
     if hasBulletProof then
         for i = 1, #shotBulletProofItems do
             local item = shotBulletProofItems[i]
-            item:setCondition(item:getCondition()-damage)
-            print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
+
+            -- Minimum reduction value is 1 due to integer type
+            item:setCondition(item:getCondition() - 1)          
+
+            print(item:getName(), "'s MaxCondition / Curr: ", item:getConditionMax(), " / ", item:getCondition())
         end
     else
         for i = 1, #shotNormalItems do
             local item = shotNormalItems[i]
-            item:setCondition(item:getCondition()-damage)
-            print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
-        end
-    end
-end
 
-
-
-function SearchAndDmgClothing(player, shotpart, damage)
-    local hasBulletProof = false
-    local playerWornInv = player:getWornItems()
-
-    -- Convert the shotpart to its display name and string representation only once
-    local nameShotPart = BodyPartType.getDisplayName(shotpart)
-    local strShotPart = BodyPartType.ToString(shotpart)
-
-    local shotBulletProofItems = {}
-    local shotNormalItems = {}
-
-    for i = 0, playerWornInv:size() - 1 do
-        local item = playerWornInv:getItemByIndex(i)
-
-        if item and instanceof(item, "Clothing") then
-            local listBloodClothTypes = item:getBloodClothingType()
-            print("listBloodClothTypes: ", listBloodClothTypes)
-            local listOfCoveredAreas = BloodClothingType.getCoveredParts(listBloodClothTypes)
-            print("listOfCoveredAreas: ", listOfCoveredAreas)
-            local areaCount = BloodClothingType.getCoveredPartCount(listBloodClothTypes)
-            print("areaCount: ", areaCount)
-
-            for j = 0, areaCount - 1 do
-                local coveredPart = listOfCoveredAreas:get(j)
-                print("coveredPart: ", coveredPart)
-                local nameCoveredPart = coveredPart:getDisplayName()
-                print("nameCoveredPart: ", nameCoveredPart)
-
-                if nameCoveredPart == nameShotPart then
-                    print(nameCoveredPart , "==" , nameShotPart)
-                    local bulletDefense = item:getBulletDefense()
-                    print("Bullet Defense: ", bulletDefense)
-
-                    if bulletDefense > 0 then
-                        hasBulletProof = true
-                        table.insert(shotBulletProofItems, item)
-                    else
-                        table.insert(shotNormalItems, item)
-                    end
-                end
+            -- hole is added only if the shot part initially had no hole. added hole means damage to clothing
+            -- decided to add holes only so players can still wear their battlescarred clothing
+            if item:getHolesNumber() < item:getNbrOfCoveredParts() then
+                playerShot:addHole(shotBloodPart, true)
             end
+
+            print(item:getName(), "'s MaxCondition / Curr: ", item:getConditionMax(), " / ", item:getCondition())
+            --print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
         end
     end
 
-    print("*********Has Bullet Proof: ", hasBulletProof)
-
-    local itemsToDamage = hasBulletProof and shotBulletProofItems or shotNormalItems
-
-    for i = 1, #itemsToDamage do
-        local item = itemsToDamage[i]
-        item:setCondition(item:getCondition() - damage)
-        print(nameShotPart, " [", item:getName(), "] clothing damaged.")
+    if getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSayShotPart"):getValue() then
+        playerShot:Say("Ow! My " .. nameShotPart .. "!")
     end
 end
 
+-------------------------------
+--DAMAGE PLAYER THAT WAS SHOT--
+--------------------------------
+function damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
 
-
-
-
-
-function NewDamagePlayershot(player, damagepr, firearmdamage)
-
-    print("NewDamagePlayershot - ", "player:", player, " damagepr:", damagepr, " firearmdamage:", firearmdamage)
-
+    print("DamagePlayershotPVP - ", "playerShot:", playerShot, " damagepr:", damage, " firearmdamage:", baseGunDmg)
 
     local highShot = {
         BodyPartType.Head, BodyPartType.Head,
         BodyPartType.Neck
     }
         
+    -- chest is biggest target so increase its chances of being wounded; will make vest armor useful
     local midShot = {
         BodyPartType.Torso_Upper, BodyPartType.Torso_Lower,
-        BodyPartType.UpperArm_L, BodyPartType.UpperArm_R,
+        BodyPartType.Torso_Upper, BodyPartType.Torso_Lower,
+        BodyPartType.Torso_Upper, BodyPartType.Torso_Lower,
+        BodyPartType.Torso_Upper, BodyPartType.Torso_Lower,
+        BodyPartType.Torso_Upper, BodyPartType.Torso_Lower,
+        BodyPartType.Torso_Upper, BodyPartType.Torso_Lower,
         BodyPartType.UpperArm_L, BodyPartType.UpperArm_R,
         BodyPartType.ForeArm_L,  BodyPartType.ForeArm_R,
         BodyPartType.Hand_L,     BodyPartType.Hand_R
@@ -154,91 +118,52 @@ function NewDamagePlayershot(player, damagepr, firearmdamage)
 
     local shotpart = BodyPartType.Torso_Upper
 
+    local footChance = 5
+    local headChance = 10
+
     local incHeadChance = 0
-    if damagepr == Advanced_trajectory.HeadShotDmgPlayerMultiplier then
-        print(damagepr , " == " , Advanced_trajectory.HeadShotDmgPlayerMultiplier)
-        incHeadChance = 20
+    if damage == headShotDmg then
+        incHeadChance = getSandboxOptions():getOptionByName("Advanced_trajectory.headShotIncChance"):getValue()
     end
 
     local incFootChance = 0
-    if damagepr == Advanced_trajectory.FootShotDmgPlayerMultiplier then
-        print(damagepr , " == " , Advanced_trajectory.FootShotDmgPlayerMultiplier)
-        incFootChance = 10
+    if damage == footShotDmg then
+        incFootChance = getSandboxOptions():getOptionByName("Advanced_trajectory.footShotIncChance"):getValue()
     end
 
-    if damagepr > 0 then
+    if damage > 0 then
 
         local randNum = ZombRand(100)
 
         -- lowShot
-        if randNum <= (10 + incFootChance) then
-            shotpart = lowShot[ZombRand(#lowShot)+1]
-
+        if randNum <= (footChance + incFootChance) then                   
+            shotpart = lowShot[ZombRand(#lowShot) + 1]
+        
         -- highShot
-        elseif randNum > (10 + incFootChance) and randNum <= (10 + incFootChance)+10+incHeadChance then
-            shotpart = highShot[ZombRand(#highShot) + 1]
-
+        elseif randNum > (footChance + incFootChance) and randNum <= (footChance + incFootChance) + (headChance + incHeadChance) then
+            shotpart = highShot[ZombRand(#highShot)+1]
+        
         -- midShot
         else
-            shotpart = midShot[ZombRand(#midShot) + 1]
+            shotpart = midShot[ZombRand(#midShot)+1]
         end
 
     end
 
-    local bodypart = player:getBodyDamage():getBodyPart(shotpart)
-    print("bodypart: " , bodypart)
+    print("DmgMult / BaseDmg: ", damage, " / ", baseGunDmg)
+    searchAndDmgClothing(playerShot, shotpart)
+    
+    local bodypart = playerShot:getBodyDamage():getBodyPart(shotpart)
+    local nameShotPart = BodyPartType.getDisplayName(shotpart)
 
-    -- Calculate clothing defense for the shot part
-
-    --Bullet Defense
-    local bulletDefense = player:getBodyPartClothingDefense(shotpart:index(), false, true);
-
-    --Scratch Defense
-    --local scratchDefense = player:getBodyPartClothingDefense(shotpart:index(), false, false)
-
-    --Bite Defense
-    --local biteDefense = player:getBodyPartClothingDefense(shotpart:index(), true, false)
-
-    print("bulletDefense: " .. bulletDefense)
-    --print("scratchDefense: " .. scratchDefense)
-    --print("biteDefense: " .. biteDefense)
-
-    --local alldefense = (scratchDefense * 0.5 + biteDefense * 0.5) / 150
-    --local alldefense = (defense1 + scratchDefense * 0.5 + biteDefense * 0.5) / 150
-
-    local alldefense = bulletDefense
-
-	local originalDamage = firearmdamage
-    print("originalDamage: " .. originalDamage)
-
-    local playerDamageDealt = firearmdamage * damagepr
-    print("playerDamageDealt: " .. playerDamageDealt)
-
-    --Advanced_trajectory.dmgDealtToPlayer = playerDamageDealt
-
-
-	--if SandboxVars.ImprovedProjectile.IPPJPVPEnableWound then
-		if ZombRand(100) >= alldefense then
-			if bodypart:haveBullet() then
-				bodypart:generateDeepWound()
-			else
-				--bodypart:setHaveBullet(true, 3)
-                bodypart:setHaveBullet(true, 0)
-			end
-		end
-	--end
-
-
-
-
-
+    -- float (part, isBite, isBullet)
     -- bulletdefense is usually 100
-    --local defense = player:getBodyPartClothingDefense(shotpart:index(),false,true)
-    --print(defense)
+    local defense = playerShot:getBodyPartClothingDefense(shotpart:index(),false,true)
 
-    --[[
+    --print("BodyPartClothingDefense: ", defense)
+
     if defense < 0.5 then
-        print("WOUNDED")
+        --print("WOUNDED")
         if bodypart:haveBullet() then
             local deepWound = bodypart:isDeepWounded()
             local deepWoundTime = bodypart:getDeepWoundTime()
@@ -250,57 +175,57 @@ function NewDamagePlayershot(player, damagepr, firearmdamage)
         else
             bodypart:setHaveBullet(true, 0)
         end
+
+        -- Destroy bandage if bandaged
+        if bodypart:bandaged() then
+            bodypart:setBandaged(false, 0)
+        end
     end
-    ]]--
 
-    if alldefense > 0.9 then
-        alldefense = 0.9
+    local maxDefense = getSandboxOptions():getOptionByName("Advanced_trajectory.maxDefenseReduction"):getValue()
+    if defense > maxDefense then
+        defense = maxDefense
     end
-    print("adjusted alldefense: " .. alldefense)
-    --firearmdamage = firearmdamage / alldefense
 
+    local playerDamageDealt = baseGunDmg * damage * (1 - defense)
 
+    playerShot:getBodyDamage():ReduceGeneralHealth(playerDamageDealt)
 
-    local hitDamage = playerDamageDealt * 0.6 * (1 - alldefense)
-    print("hitDamage: " .. hitDamage)
-
-    --local hitPlayerPart = player:getBodyDamage():getBodyPart(shotpart)
-
-    bodypart:ReduceHealth(hitDamage)
-	--local actualDamage = hitDamage * BodyPartType.getDamageModifyer(shotpart:index())
-
-
-	local stats = player:getStats()
-	local pain = math.min(stats:getPain() + player:getBodyDamage():getInitialBitePain() * BodyPartType.getPainModifyer(shotpart:index()), 100)
+    local stats = playerShot:getStats()
+	local pain = math.min(stats:getPain() + playerShot:getBodyDamage():getInitialBitePain() * BodyPartType.getPainModifyer(shotpart:index()), 100)
 	stats:setPain(pain)
 
-    player:addBlood(50)
+    --playerShot:updateMovementRates()
+    --playerShot:getBodyDamage():Update()
 
+    playerShot:addBlood(50)
 
-    --player:getBodyDamage():ReduceGeneralHealth(firearmdamage * damagepr * 0.6 * (1 - defense))
-    --sendClientCommand("IPPJ", "writePVPLog", {args[1], args[2], BodyPartType.ToString(hitPart), originalDamage, hitDamage, actualDamage, args[5], args[6], player:isDead()})
+    local isDead = playerShot:isDead()
 
-    local clothingDamage = 1
-    SearchAndDmgClothing(player, shotpart, clothingDamage)
+    Advanced_trajectory.writePVPLog({player, playerShot, nameShotPart, damage, baseGunDmg, playerDamageDealt, isDead})   
 end
 
---getBiteDefenseFromItem
---getScratchDefenseFromItem
---getBiteDefense
---getBulletDefense
---getScratchDefense
+----------------------
+--CREDITS TO LISOLA--
+----------------------
+function Advanced_trajectory.writePVPLog(arguments)    
+    local shooter                   = arguments[1]
+    local target                    = arguments[2]
+    local strShotPart               = arguments[3]   
+    local damagepr                  = arguments[4]                 
+    local baseGunDmg                = arguments[5]     
+    local damageDealtToTarget       = arguments[6]     
+    local targetIsDead              = arguments[7]   
 
+	local log1 = string.format(("[ATROPVP] \"%s\" shot \"%s\" (PartShot: \"%s\" || HitDmg: \"%s\" || BaseGunDmg: \"%s\"  || ActDmg: \"%s\")"), shooter:getUsername(), target:getUsername(), strShotPart, damagepr, baseGunDmg, damageDealtToTarget)
+	writeLog("ATROPVP", log1)
 
---[[
-local wornItems = getPlayer():getWornItems()
-for i=1,wornItems:size() do
-    local item = wornItems:get(i-1):getItem()
-    print(item:getClothingItemName())
-    print(item:getVisual():getBaseTexture())
-    print(item:getVisual():getTextureChoice())
+	if targetIsDead == true then
+		local killLog = string.format(("[ATROPVP] \"%s\" was killed by \"%s\""), target:getUsername(), shooter:getUsername())
+		writeLog("ATROPVP", killLog)
+	end
 end
 
-]]--
 
 
 local function Advanced_trajectory_OnServerCommand(module, command, arguments)
@@ -308,11 +233,24 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
     local clientPlayershot = getPlayer()
     if not clientPlayershot then return end
 
+
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -- sendClientCommand("ATY_shotplayer", "true", {vt[19]:getOnlineID(), Playershot:getOnlineID(), damagepr, vt[6], Advanced_trajectory.HeadShotDmgPlayerMultiplier, Advanced_trajectory.BodyShotDmgPlayerMultiplier, Advanced_trajectory.FootShotDmgPlayerMultiplier})--
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	if module == "ATY_shotplayer" then
 
-        local playershotOnlineID = arguments[1] --Playershot:getOnlineID()
-        local damagepr = arguments[2] --damagepr
-        local firearmdamage = arguments[3] --firearmdamage
+        local playerOnlineID        = arguments[1]  
+        local playershotOnlineID    = arguments[2]         
+        local damagepr              = arguments[3]                 
+        local baseGunDmg            = arguments[4]               
+        local headShotDmgMultiplier = arguments[5]
+        local bodyShotDmgMultiplier = arguments[6]
+        local footShotDmgMultiplier = arguments[7]
+
+        local player     = getPlayerByOnlineID(playerOnlineID)
+        local playershot = getPlayerByOnlineID(playershotOnlineID)
+
+        print(player:getUsername(), " -> ", playershot:getUsername())
 
         if playershotOnlineID ~= clientPlayershot:getOnlineID() then return end
 
@@ -324,29 +262,45 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
         print("damagepr: " .. damagepr)
         clientPlayershot:Say("damagepr: " .. damagepr)
 
-        --local baseGunDmg = baseGun:getDamage()
+        print("BEFORE DAMAGE: " , clientPlayershot, damagepr, baseGunDmg)
 
-        print("BEFORE DAMAGE: " , clientPlayershot, damagepr, firearmdamage)
-        NewDamagePlayershot(clientPlayershot, damagepr, firearmdamage)
+        --damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
+        damagePlayershotPVP(player, playershot, damagepr, baseGunDmg, headShotDmgMultiplier, bodyShotDmgMultiplier, footShotDmgMultiplier)   --ERROR
         print("*-----------------------------------------------------------------------------*")
+    
+
+
+    ----------------------------------------------------------------------------
+    --sendClientCommand("ATY_shotsfx", "true", {tablez, character:getOnlineID()})--
+    ----------------------------------------------------------------------------
     elseif module == "ATY_shotsfx" then
 
-        local itemobj = arguments[1] --tablez[1] or item obj
-        local characterOnlineID = arguments[2] --character:getOnlineID()
+        local itemobj = arguments[1]            --tablez[1] or item obj
+        local characterOnlineID = arguments[2]  --character:getOnlineID()
 
         if characterOnlineID == clientPlayershot:getOnlineID() then return end
         table.insert(Advanced_trajectory.table, itemobj)
 
+
+
+    -----------------------------------
+    -- Can't find module in core file--
+    -----------------------------------
     elseif module == "ATY_reducehealth" then
 
-        local ExplosionPower = arguments[1] --ExplosionPower
+        local ExplosionPower = arguments[1]     --ExplosionPower
 
         clientPlayershot:getBodyDamage():ReduceGeneralHealth(ExplosionPower)
 
+
+
+    -------------------------------------------------------------------------------------------
+    --sendClientCommand("ATY_cshotzombie", "true", {Zombie:getOnlineID(),vt[19]:getOnlineID()})--
+    -------------------------------------------------------------------------------------------
     elseif module == "ATY_cshotzombie" then
 
-        local zedOnlineID = arguments[1] --Zombie:getOnlineID()
-        local playerOnlineID = arguments[2] --vt[19]:getOnlineID()
+        local zedOnlineID = arguments[1]        --Zombie:getOnlineID()
+        local playerOnlineID = arguments[2]     --vt[19]:getOnlineID()
 
         if clientPlayershot:getOnlineID() == playerOnlineID then return end
         local zombies = getCell():getZombieList()
@@ -365,6 +319,11 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
             end
         end
 
+
+        
+    -------------------------------------------------------------------
+    --sendClientCommand("ATY_killzombie", "true", {Zombie:getOnlineID()})--
+    --------------------------------------------------------------------
     elseif module == "ATY_killzombie" then
 
         local zedOnlineID = arguments[1] --Zombie:getOnlineID()

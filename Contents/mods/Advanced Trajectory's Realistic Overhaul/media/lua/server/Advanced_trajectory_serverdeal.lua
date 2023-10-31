@@ -1,5 +1,8 @@
 -- require "Advanced_trajectory_core"
+
 if not isServer() then return end
+
+
 local function Advanced_trajectory_OnClientCommand(module, command, player, args)
 
     if module == "ATY_shotplayer" then
