@@ -111,7 +111,7 @@ option Advanced_trajectory.DebugEnableBow
 option Advanced_trajectory.DebugEnableVoodoo
 {
 	type = boolean,
-	default = true,
+	default = false,
 	page = Advanced_trajectory_debug,
 	translation = Advanced_trajectoryDebugEnableVoodoo,
 }
@@ -119,7 +119,7 @@ option Advanced_trajectory.DebugEnableVoodoo
 option Advanced_trajectory.DebugSayShotPart
 {
 	type = boolean,
-	default = true,
+	default = false,
 	page = Advanced_trajectory_debug,
 	translation = Advanced_trajectoryDebugSayShotPart,
 }
