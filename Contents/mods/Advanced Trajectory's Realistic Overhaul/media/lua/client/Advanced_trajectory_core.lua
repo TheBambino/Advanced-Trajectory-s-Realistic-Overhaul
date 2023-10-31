@@ -596,13 +596,15 @@ function Advanced_trajectory.OnPlayerUpdate()
     local weaitem = player:getPrimaryHandItem()
 
 
-    if  player:isAiming() and instanceof(weaitem,"HandWeapon") and (((weaitem:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) or (weaitem:getSwingAnim() =="Throw" and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablethrow"):getValue())) or Advanced_trajectory.Advanced_trajectory[weaitem:getFullType()]) then
+    if  player:isAiming() and instanceof(weaitem,"HandWeapon") and not (weaitem:hasTag("XBow") or weaitem:hasTag("Thrown")) and (((weaitem:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) or (weaitem:getSwingAnim() =="Throw" and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablethrow"):getValue())) or Advanced_trajectory.Advanced_trajectory[weaitem:getFullType()]) then
        
+
         if getSandboxOptions():getOptionByName("Advanced_trajectory.showOutlines"):getValue() then
             weaitem:setMaxHitCount(1)
         else
             weaitem:setMaxHitCount(0)
         end
+
 
         local modEffectsTable = Advanced_trajectory.getAttachmentEffects(weaitem)  
         --print("Rs: ", modEffectsTable[1], " / Fc: ", modEffectsTable[2], " / Re: ", modEffectsTable[3], " / Ra: ", modEffectsTable[4], " / A:", modEffectsTable[5])
@@ -1301,7 +1303,7 @@ function searchAndDmgClothing(player, shotpart)
             -- Minimum reduction value is 1 due to integer type
             item:setCondition(item:getCondition() - 1)          
 
-            print(item:getName(), "'s MaxCondition / Curr: ", item:getConditionMax(), " / ", item:getCondition())
+            --print(item:getName(), "'s MaxCondition / Curr: ", item:getConditionMax(), " / ", item:getCondition())
         end
     else
         for i = 1, #shotNormalItems do
@@ -1313,7 +1315,7 @@ function searchAndDmgClothing(player, shotpart)
                 player:addHole(shotBloodPart, true)
             end
 
-            print(item:getName(), "'s MaxCondition / Curr: ", item:getConditionMax(), " / ", item:getCondition())
+            --print(item:getName(), "'s MaxCondition / Curr: ", item:getConditionMax(), " / ", item:getCondition())
             --print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
         end
     end
@@ -1385,7 +1387,7 @@ function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, 
 
     end
 
-    print("DmgMult / BaseDmg: ", damage, " / ", baseGunDmg)
+    --print("DmgMult / BaseDmg: ", damage, " / ", baseGunDmg)
     searchAndDmgClothing(player, shotpart)
     
     local bodypart = player:getBodyDamage():getBodyPart(shotpart)
@@ -1747,8 +1749,8 @@ function Advanced_trajectory.checkontick()
                             end 
                         end
 
-                        if getSandboxOptions():getOptionByName("Advanced_trajectory.bowBreakChance"):getValue() then
-                            --checkBowAndCrossbow(vt[19], Zombie)
+                        if getSandboxOptions():getOptionByName("Advanced_trajectory.DebugEnableBow"):getValue() then
+                            checkBowAndCrossbow(vt[19], Zombie)
                         end
                         
                     end
@@ -1784,7 +1786,7 @@ Events.OnTick.Add(Advanced_trajectory.checkontick)
 -----------------------------------
 function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     
-    if getSandboxOptions():getOptionByName("Advanced_trajectory.showOutlines"):getValue() and instanceof(handWeapon,"HandWeapon") and (handWeapon:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) then
+    if getSandboxOptions():getOptionByName("Advanced_trajectory.showOutlines"):getValue() and instanceof(handWeapon,"HandWeapon") and not (handWeapon:hasTag("XBow") or handWeapon:hasTag("Thrown")) and (handWeapon:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) then
         handWeapon:setMaxHitCount(0)
     end
 
@@ -1997,6 +1999,9 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                 return
             elseif  (string.contains(handWeapon:getAmmoType() or "", "FlameFuel") and string.contains(handWeapon:getName() or "", "Thrower")) then 
                 -- Break bullet if flamethrower
+                return
+            elseif (handWeapon:hasTag("XBow") or handWeapon:hasTag("Thrown")) then
+                -- Break bullet if bow
                 return
             else
                 tablez[9] = "revolver"

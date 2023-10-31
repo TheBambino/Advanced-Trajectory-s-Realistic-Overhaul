@@ -14,7 +14,7 @@ option Advanced_trajectory.Enablerange
 {type = boolean,default = true,page = Advanced_trajectory,translation = Advanced_trajectoryEnablerange,}
 
 option Advanced_trajectory.Enablethrow
-{type = boolean,default = true,page = Advanced_trajectory,translation = Advanced_trajectoryEnablethrow,}
+{type = boolean,default = false,page = Advanced_trajectory,translation = Advanced_trajectoryEnablethrow,}
 
 option Advanced_trajectory.callshot
 {type = boolean,default = false,page = Advanced_trajectory_debug,translation = Advanced_trajectorycallshot,}

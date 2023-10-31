@@ -250,7 +250,7 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
         local player     = getPlayerByOnlineID(playerOnlineID)
         local playershot = getPlayerByOnlineID(playershotOnlineID)
 
-        print(player:getUsername(), " -> ", playershot:getUsername())
+        --print(player:getUsername(), " -> ", playershot:getUsername())
 
         if playershotOnlineID ~= clientPlayershot:getOnlineID() then return end
 
@@ -258,15 +258,15 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
         -- print(NonPvpZone.getNonPvpZone(getPlayer():getX(), getPlayer():getY()))
         -- print(SafeHouse.getSafeHouse(getPlayer():getCurrentSquare()))
 
-        print("*-----------------------------------------------------------------------------*")
-        print("damagepr: " .. damagepr)
+        --print("*-----------------------------------------------------------------------------*")
+        --print("damagepr: " .. damagepr)
         clientPlayershot:Say("damagepr: " .. damagepr)
 
-        print("BEFORE DAMAGE: " , clientPlayershot, damagepr, baseGunDmg)
+        --print("BEFORE DAMAGE: " , clientPlayershot, damagepr, baseGunDmg)
 
         --damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
         damagePlayershotPVP(player, playershot, damagepr, baseGunDmg, headShotDmgMultiplier, bodyShotDmgMultiplier, footShotDmgMultiplier)   --ERROR
-        print("*-----------------------------------------------------------------------------*")
+        --print("*-----------------------------------------------------------------------------*")
     
 
 
