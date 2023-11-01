@@ -596,7 +596,7 @@ function Advanced_trajectory.OnPlayerUpdate()
     local weaitem = player:getPrimaryHandItem()
 
 
-    if  player:isAiming() and instanceof(weaitem,"HandWeapon") and not (weaitem:hasTag("XBow") or weaitem:hasTag("Thrown")) and (((weaitem:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) or (weaitem:getSwingAnim() =="Throw" and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablethrow"):getValue())) or Advanced_trajectory.Advanced_trajectory[weaitem:getFullType()]) then
+    if  player:isAiming() and instanceof(weaitem,"HandWeapon") and not weaitem:hasTag("Thrown") and not (weaitem:hasTag("XBow") and not getSandboxOptions():getOptionByName("Advanced_trajectory.DebugEnableBow"):getValue()) and (((weaitem:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) or (weaitem:getSwingAnim() =="Throw" and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablethrow"):getValue())) or Advanced_trajectory.Advanced_trajectory[weaitem:getFullType()]) then
        
 
         if getSandboxOptions():getOptionByName("Advanced_trajectory.showOutlines"):getValue() then
@@ -1786,7 +1786,7 @@ Events.OnTick.Add(Advanced_trajectory.checkontick)
 -----------------------------------
 function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     
-    if getSandboxOptions():getOptionByName("Advanced_trajectory.showOutlines"):getValue() and instanceof(handWeapon,"HandWeapon") and not (handWeapon:hasTag("XBow") or handWeapon:hasTag("Thrown")) and (handWeapon:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) then
+    if getSandboxOptions():getOptionByName("Advanced_trajectory.showOutlines"):getValue() and instanceof(handWeapon,"HandWeapon") and not handWeapon:hasTag("Thrown") and not (handWeapon:hasTag("XBow") and not getSandboxOptions():getOptionByName("Advanced_trajectory.DebugEnableBow"):getValue()) and (handWeapon:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) then
         handWeapon:setMaxHitCount(0)
     end
 
@@ -1972,7 +1972,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
             local offset = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugOffset"):getValue()
 
             if  (string.contains(handWeapon:getAmmoType() or "","Shotgun") or string.contains(handWeapon:getAmmoType() or "","shotgun") or string.contains(handWeapon:getAmmoType() or "","shell") or string.contains(handWeapon:getAmmoType() or "","Shell")) then
-                local shotgunDistanceModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgunDistanceModifier")
+                local shotgunDistanceModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgunDistanceModifier"):getValue()
                 
                 tablez[9] = "Shotgun" --weapon name
 
@@ -1985,13 +1985,13 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                     tablez[14] = "Base.aty_Shotguna"  
                 end
 
-                tablez[12] = 1.6    --ballistic speed
-                tablez[7] = tablez[7] * 0.75  --ballistic distance
-                tablez[15] = false --isthroughwall
+                tablez[12] = 1.6                                    --ballistic speed
+                tablez[7] = tablez[7] * shotgunDistanceModifier     --ballistic distance
+                tablez[15] = false                                  --isthroughwall
 
                 tablez[4][1] = tablez[4][1] + offset*tablez[3][1]    --offsetx=offsetx +.6 * deltX; deltX is cos of dirc
                 tablez[4][2] = tablez[4][2] + offset*tablez[3][2]    --offsety=offsety +.6 * deltY; deltY is sin of dirc
-                tablez[4][3] = tablez[4][3]+0.5                 --offsetz=offsetz +.5
+                tablez[4][3] = tablez[4][3]+0.5                      --offsetz=offsetz +.5
 
                 isHoldingShotgun = true
             elseif  (string.contains(handWeapon:getAmmoType() or "", "Round") or string.contains(handWeapon:getAmmoType() or "", "round")) then 
@@ -2000,7 +2000,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
             elseif  (string.contains(handWeapon:getAmmoType() or "", "FlameFuel") and string.contains(handWeapon:getName() or "", "Thrower")) then 
                 -- Break bullet if flamethrower
                 return
-            elseif (handWeapon:hasTag("XBow") or handWeapon:hasTag("Thrown")) then
+            elseif ((handWeapon:hasTag("XBow") and not getSandboxOptions():getOptionByName("Advanced_trajectory.DebugEnableBow"):getValue()) or handWeapon:hasTag("Thrown")) then
                 -- Break bullet if bow
                 return
             else
@@ -2041,6 +2041,11 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
     -- NOTES: tablez[6] is damage, firearm damages vary from 0 to 2. Example, M16 has min to max: 0.8 to 1.4 (source wiki)
     tablez[6] = tablez[6] or (handWeapon:getMinDamage() + ZombRandFloat(0.1, 1.3) * (0.5 + handWeapon:getMaxDamage() - handWeapon:getMinDamage()))
+
+    if isHoldingShotgun then
+        local shotgunDamageMultiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgunDamageMultiplier"):getValue()
+        tablez[6] = tablez[6] * shotgunDamageMultiplier
+    end
     
     -- firearm crit chance can vary from 0 to 30. Ex, M16 has a crit chance of 30 (source wiki)
     -- Rifles - 25 to 30

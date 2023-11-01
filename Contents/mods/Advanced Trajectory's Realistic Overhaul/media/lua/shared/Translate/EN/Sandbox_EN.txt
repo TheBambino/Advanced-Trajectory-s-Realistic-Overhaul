@@ -53,6 +53,8 @@ Sandbox_EN = {
 	Sandbox_Advanced_trajectorycritChanceModifier = "Critchance Modifier",
 	Sandbox_Advanced_trajectorycritChanceModifier_tooltip = "Bloom affects crit chance. This is a multiplier to that. Set to 0 for better chances of crit.",
 
+	Sandbox_Advanced_trajectoryshotgunDamageMultiplier = "Damage Multiplier (Shotguns)",
+
 	Sandbox_Advanced_trajectorycritChanceModifierShotgunsOnly = "Critchance Modifier (Shotguns)",
 	Sandbox_Advanced_trajectorycritChanceModifierShotgunsOnly_tooltip = "Shotguns crit chance is only affected by their stat and aiming level (not bloom). Default value is 10 meaning the game decides a random value from 1 to (100 - 10) and if value is <= crit stat, then crit.",
 

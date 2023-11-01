@@ -267,6 +267,16 @@ option Advanced_trajectory.footShotDmgPlayerMultiplier
 	translation = Advanced_trajectoryfootShotDmgPlayerMultiplier,
 }
 
+option Advanced_trajectory.shotgunDamageMultiplier
+{
+	type = double,
+	min = 0,
+	max = 100,
+	default = 1,
+	page = Advanced_trajectory_damage,
+	translation = Advanced_trajectoryshotgunDamageMultiplier,
+}
+
 option Advanced_trajectory.critChanceModifierShotgunsOnly
 {
 	type = double,
