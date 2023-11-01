@@ -260,12 +260,12 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
 
         --print("*-----------------------------------------------------------------------------*")
         --print("damagepr: " .. damagepr)
-        clientPlayershot:Say("damagepr: " .. damagepr)
+        --clientPlayershot:Say("damagepr: " .. damagepr)
 
         --print("BEFORE DAMAGE: " , clientPlayershot, damagepr, baseGunDmg)
 
         --damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
-        damagePlayershotPVP(player, playershot, damagepr, baseGunDmg, headShotDmgMultiplier, bodyShotDmgMultiplier, footShotDmgMultiplier)   --ERROR
+        damagePlayershotPVP(player, clientPlayershot, damagepr, baseGunDmg, headShotDmgMultiplier, bodyShotDmgMultiplier, footShotDmgMultiplier)   
         --print("*-----------------------------------------------------------------------------*")
     
 

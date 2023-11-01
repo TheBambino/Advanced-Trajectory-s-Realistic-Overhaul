@@ -144,7 +144,7 @@ function Advanced_trajectory.Boom(sq,info)
                                
                             end
                             
-                        elseif getSandboxOptions():getOptionByName("Advanced_trajectory.playerdamage"):getValue() and instanceof(zombiez,"IsoPlayer") then
+                        elseif getSandboxOptions():getOptionByName("Advanced_trajectory.EnablePlayerDamage"):getValue() and instanceof(zombiez,"IsoPlayer") then
     
                             if isClient() then
 

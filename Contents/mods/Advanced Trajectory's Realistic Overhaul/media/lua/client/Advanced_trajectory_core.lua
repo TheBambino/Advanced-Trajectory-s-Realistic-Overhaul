@@ -134,6 +134,7 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
                     if instanceof(zombieOrPlayer, "IsoZombie") then
                         zbtable[zombieOrPlayer] = 1  -- Add to zombie table
                     elseif isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
+                        print("FOUND PLAYER")
                         prtable[zombieOrPlayer] = 1  -- Add to player table
                     end
                 end
@@ -150,6 +151,7 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
                         --numZomsShootable = numZomsShootable + 1
                     end
                     if isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
+                        print("FOUND PLAYER")
                         prtable[zombieOrPlayer] = 1  
                     end
                 end
