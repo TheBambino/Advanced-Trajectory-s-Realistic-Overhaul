@@ -242,7 +242,7 @@ end
 -- bullet square, dirc, bullet offset, player offset, nonsfx
 function Advanced_trajectory.checkiswallordoor(square,bulletAngle,bulletPosition,playerPosition,nosfx)
     --print("----SQUARE---: ",   square:getX(), "  //  ", square:getY())
-
+    print("Aim Level", Advanced_trajectory.aimlevels)
     local bulletPosFloorX = math.floor(bulletPosition[1])
     local bulletPosFloorY = math.floor(bulletPosition[2])
 
@@ -311,6 +311,11 @@ function Advanced_trajectory.checkiswallordoor(square,bulletAngle,bulletPosition
                     end
 
                     local isAngleTrue = false
+
+                    -- prevents wall collision when shooting targets below on roofs by ignoring wall near player
+                    if (wallN or doorN or wallNW or wallSE or wallW or doorW) and (Advanced_trajectory.aimlevels ~= playerPosition[3]) then
+                        return false
+                    end
 
                     if wallNW then
                         --if shooting into corner, then break
@@ -1142,6 +1147,8 @@ function Advanced_trajectory.OnPlayerUpdate()
             end
         end
 
+        --print("Aim Level", Advanced_trajectory.aimlevels)
+
         -- If no object is aimed at, reset the aim level
         if not isAimingObject then
             Advanced_trajectory.aimlevels = nil
@@ -1469,14 +1476,19 @@ function Advanced_trajectory.checkontick()
         local tablenowz12_ = vt[12] * 0.35
 
         -- RADON NOTES: PERHAPS THIS DETERMINES IF BULLET SHOULD DISAPPEAR/BREAK IF COLLIDE WITH SOMETHING
-        vt[2] = getWorld():getCell():getOrCreateGridSquare(vt[4][1], vt[4][2], vt[4][3])
+        if Advanced_trajectory.aimlevels then
+            vt[2] = getWorld():getCell():getOrCreateGridSquare(vt[4][1], vt[4][2], Advanced_trajectory.aimlevels)
+        else
+            vt[2] = getWorld():getCell():getOrCreateGridSquare(vt[4][1], vt[4][2], vt[4][3])
+        end
+
         vt[22]["pos"] = {Advanced_trajectory.mathfloor(vt[4][1]), Advanced_trajectory.mathfloor(vt[4][2])}
 
 
        if vt[2] then
             -- bullet square, dirc, offset, offset, nonsfx
             if Advanced_trajectory.checkiswallordoor(vt[2],vt[5],vt[4],vt[20],vt["nonsfx"]) and not vt[15] then
-
+                print("***********Bullet collided with wall.************")
                 --print("Wallcarmouse: ", vt["wallcarmouse"])
                 --print("Wallcarzombie: ", vt["wallcarzombie"])
                 --print("Cell: ", vt[4][1],", ",vt[4][2],", ",vt[4][3])
@@ -1494,6 +1506,11 @@ function Advanced_trajectory.checkontick()
                 Advanced_trajectory.itemremove(vt[1]) 
                 tablenow[kt]=nil
                 break
+            end
+
+            -- reassign so visual offset of bullet doesn't go whack
+            if getWorld():getCell():getOrCreateGridSquare(vt[4][1], vt[4][2], vt[4][3]) then
+                vt[2] = getWorld():getCell():getOrCreateGridSquare(vt[4][1], vt[4][2], vt[4][3])
             end
 
             local mathfloor = Advanced_trajectory.mathfloor

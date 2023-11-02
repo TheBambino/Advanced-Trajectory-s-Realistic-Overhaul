@@ -3,7 +3,7 @@ require "Advanced_trajectory_core"
 -------------------------------------------------
 --DAMAGE CLOTHING COVERING THE SHOT BODY PART--
 --------------------------------------------------
-function searchAndDmgClothing(playerShot, shotpart)
+local function searchAndDmgClothing(playerShot, shotpart)
 
     local hasBulletProof= false
     local playerWornInv = playerShot:getWornItems();
@@ -86,7 +86,7 @@ end
 -------------------------------
 --DAMAGE PLAYER THAT WAS SHOT--
 --------------------------------
-function damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
+local function damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
 
     print("DamagePlayershotPVP - ", "playerShot:", playerShot, " damagepr:", damage, " firearmdamage:", baseGunDmg)
 
@@ -252,7 +252,7 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
 
         --print(player:getUsername(), " -> ", playershot:getUsername())
 
-        if playershotOnlineID ~= clientPlayershot:getOnlineID() then return end
+        --if playershotOnlineID ~= clientPlayershot:getOnlineID() then return end
 
         if (getSandboxOptions():getOptionByName("ATY_nonpvp_protect"):getValue() and NonPvpZone.getNonPvpZone(clientPlayershot:getX(), clientPlayershot:getY())) or (getSandboxOptions():getOptionByName("ATY_safezone_protect"):getValue() and SafeHouse.getSafeHouse(clientPlayershot:getCurrentSquare())) then return end
         -- print(NonPvpZone.getNonPvpZone(getPlayer():getX(), getPlayer():getY()))

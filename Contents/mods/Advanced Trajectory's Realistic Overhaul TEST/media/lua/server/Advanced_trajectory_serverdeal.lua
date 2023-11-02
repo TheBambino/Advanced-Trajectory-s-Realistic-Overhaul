@@ -7,7 +7,8 @@ local function Advanced_trajectory_OnClientCommand(module, command, player, args
 
     if module == "ATY_shotplayer" then
 
-        sendServerCommand(getPlayerByOnlineID(args[1]),"ATY_shotplayer", "true", args)
+        -- make sure the first parameter is for TARGET PLAYER
+        sendServerCommand(getPlayerByOnlineID(args[2]),"ATY_shotplayer", "true", args)
 
     elseif module == "ATY_shotsfx" then
 
