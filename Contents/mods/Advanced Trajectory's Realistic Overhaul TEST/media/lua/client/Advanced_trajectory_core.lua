@@ -134,7 +134,7 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
                     if instanceof(zombieOrPlayer, "IsoZombie") then
                         zbtable[zombieOrPlayer] = 1  -- Add to zombie table
                     elseif isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
-                        print("FOUND PLAYER")
+                        --print("FOUND PLAYER")
                         prtable[zombieOrPlayer] = 1  -- Add to player table
                     end
                 end
@@ -151,7 +151,7 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
                         --numZomsShootable = numZomsShootable + 1
                     end
                     if isshotplayer and instanceof(zombieOrPlayer, "IsoPlayer") then
-                        print("FOUND PLAYER")
+                        --print("FOUND PLAYER")
                         prtable[zombieOrPlayer] = 1  
                     end
                 end
@@ -242,12 +242,13 @@ end
 -- bullet square, dirc, bullet offset, player offset, nonsfx
 function Advanced_trajectory.checkiswallordoor(square,bulletAngle,bulletPosition,playerPosition,nosfx)
     --print("----SQUARE---: ",   square:getX(), "  //  ", square:getY())
-    print("Aim Level", Advanced_trajectory.aimlevels)
+
     local bulletPosFloorX = math.floor(bulletPosition[1])
     local bulletPosFloorY = math.floor(bulletPosition[2])
 
     local playerPosFloorX = math.floor(playerPosition[1])
     local playerPosFloorY = math.floor(playerPosition[2])
+    local playerPosFloorZ = math.floor(playerPosition[3])
 
     local bulletPosX = bulletPosition[1]
     local bulletPosY = bulletPosition[2]
@@ -313,8 +314,11 @@ function Advanced_trajectory.checkiswallordoor(square,bulletAngle,bulletPosition
                     local isAngleTrue = false
 
                     -- prevents wall collision when shooting targets below on roofs by ignoring wall near player
-                    if (wallN or doorN or wallNW or wallSE or wallW or doorW) and (Advanced_trajectory.aimlevels ~= playerPosition[3]) then
-                        return false
+                    if Advanced_trajectory.aimlevels then 
+                        print("Aim Level | playerZ: ", Advanced_trajectory.aimlevels, " || ", playerPosFloorZ)
+                        if (wallN or doorN or wallNW or wallSE or wallW or doorW) and (Advanced_trajectory.aimlevels ~= playerPosFloorZ) then
+                            return false
+                        end
                     end
 
                     if wallNW then
@@ -1431,9 +1435,9 @@ function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, 
         defense = maxDefense
     end
 
-    local playerDamageDealt = baseGunDmg*damage
+    local playerDamageDealt = baseGunDmg*damage*(1-defense)
 
-    player:getBodyDamage():ReduceGeneralHealth(baseGunDmg*damage*(1-defense))
+    player:getBodyDamage():ReduceGeneralHealth(playerDamageDealt)
 end
 
 -----------------------------------
@@ -1634,22 +1638,22 @@ function Advanced_trajectory.checkontick()
                 -- steady aim wins the game, else bodyshot damage 
                 if Advanced_trajectory.aimnumBeforeShot <= 5 then
                     damagezb = Advanced_trajectory.HeadShotDmgZomMultiplier            -- zombie headshot aka strong headshot
-                    damagepr = Advanced_trajectory.HeadShotDmgPlayerMultiplier         -- zombie headshot aka strong headshot
+                    damagepr = Advanced_trajectory.HeadShotDmgPlayerMultiplier         -- player headshot aka strong headshot
                     saywhat = "IGUI_Headshot (STRONG): " .. Advanced_trajectory.aimnumBeforeShot
                 else
                     damagezb = Advanced_trajectory.BodyShotDmgZomMultiplier            -- zombie bodyshot aka weak headshot
-                    damagepr = Advanced_trajectory.BodyShotDmgPlayerMultiplier         -- zombie bodyshot aka weak headshot
+                    damagepr = Advanced_trajectory.BodyShotDmgPlayerMultiplier         -- player bodyshot aka weak headshot
                     saywhat = "IGUI_Headshot (WEAK): " .. Advanced_trajectory.aimnumBeforeShot
                 end
                 -- vt[4] is offset xyz
                 if not Zombie and not Playershot  then
-                    Zombie,Playershot = Advanced_trajectory.getShootzombie({vt[4][1]-0.9 +angleammooff*0.45 +admindel*3, vt[4][2]-0.9 +angleammooff*0.45 +admindel*3, shootlevel},2,isshotplayer, {vt[20][1],vt[20][2],vt[20][3]})
+                    Zombie,Playershot = Advanced_trajectory.getShootzombie({vt[4][1] - 0.9 + angleammooff*0.45 + admindel*3, vt[4][2] - 0.9 + angleammooff*0.45 + admindel*3, shootlevel}, 2, isshotplayer, {vt[20][1], vt[20][2], vt[20][3]})
                     damagezb = Advanced_trajectory.BodyShotDmgZomMultiplier            -- zombie bodyshot
                     damagepr = Advanced_trajectory.BodyShotDmgPlayerMultiplier         -- player bodyshot
                     saywhat = "IGUI_Bodyshot"
                 end
                 if not Zombie and not Playershot then
-                    Zombie,Playershot = Advanced_trajectory.getShootzombie({vt[4][1]-1.8 +angleammooff*0.9 +admindel*3, vt[4][2]-1.8 +angleammooff*0.9 +admindel*3, shootlevel},3,isshotplayer, {vt[20][1],vt[20][2],vt[20][3]})
+                    Zombie,Playershot = Advanced_trajectory.getShootzombie({vt[4][1] - 1.8 + angleammooff*0.9 + admindel*3, vt[4][2] - 1.8 + angleammooff*0.9 + admindel*3, shootlevel}, 3, isshotplayer, {vt[20][1], vt[20][2], vt[20][3]})
                     damagezb = Advanced_trajectory.FootShotDmgZomMultiplier            -- zombie footshot
                     damagepr = Advanced_trajectory.FootShotDmgPlayerMultiplier         -- player footshot
                     saywhat = "IGUI_Footshot"
@@ -1777,10 +1781,15 @@ function Advanced_trajectory.checkontick()
 
                     Advanced_trajectory.itemremove(vt[1])
 
+                    -- set penetration to 1 if null, subtract after zombie is hit
                     if not vt["ThroNumber"] then vt["ThroNumber"] = 1 end
                     vt["ThroNumber"] = vt["ThroNumber"]-1
-                    vt[6] = 0.36*vt[6]
 
+                    -- reduce damage after penetration
+                    local penDmgReduction = getSandboxOptions():getOptionByName("Advanced_trajectory.penDamageReductionMultiplier"):getValue()
+                    vt[6] = penDmgReduction * vt[6]
+
+                    -- break if iscantthrough and penetration is 0
                     if not vt[11] and (vt["ThroNumber"] <= 0  )then
                         tablenow[kt]=nil
                         break
@@ -2043,7 +2052,12 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                 tablez[4][2] = tablez[4][2] + offset*tablez[3][2]
                 tablez[4][3] = tablez[4][3] + 0.5
 
-                tablez["ThroNumber"] = ScriptManager.instance:getItem(handWeapon:getFullType()):getMaxHitCount()
+                -- determines number of zombies it can hit with one bullet (pen), if enabled set to stat. Else it will be set to 1 in checkontick.
+                if getSandboxOptions():getOptionByName("Advanced_trajectory.enableBulletPenFlesh"):getValue() then
+                    tablez["ThroNumber"] = ScriptManager.instance:getItem(handWeapon:getFullType()):getMaxHitCount()
+                else
+                    tablez["ThroNumber"] = 1
+                end
 
                 isHoldingShotgun = false
             end

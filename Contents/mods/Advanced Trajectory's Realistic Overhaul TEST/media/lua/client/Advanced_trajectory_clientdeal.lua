@@ -200,7 +200,11 @@ local function damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headS
 
     playerShot:addBlood(50)
 
-    local isDead = playerShot:isDead()
+    local isDead = false
+    if playerShot:getHealth() < 1 or playerShot:isDead() == true then
+        --print(playerShot:getUsername() ," is most likely dead.")
+        isDead = true
+    end
 
     Advanced_trajectory.writePVPLog({player, playerShot, nameShotPart, damage, baseGunDmg, playerDamageDealt, isDead})   
 end

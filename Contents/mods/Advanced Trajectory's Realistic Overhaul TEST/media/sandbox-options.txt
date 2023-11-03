@@ -14,7 +14,7 @@ option Advanced_trajectory.Enablerange
 {type = boolean,default = true,page = Advanced_trajectory,translation = Advanced_trajectoryEnablerange,}
 
 option Advanced_trajectory.Enablethrow
-{type = boolean,default = false,page = Advanced_trajectory,translation = Advanced_trajectoryEnablethrow,}
+{type = boolean,default = true,page = Advanced_trajectory,translation = Advanced_trajectoryEnablethrow,}
 
 option Advanced_trajectory.callshot
 {type = boolean,default = false,page = Advanced_trajectory_debug,translation = Advanced_trajectorycallshot,}
@@ -22,6 +22,9 @@ option Advanced_trajectory.callshot
 /* ------Enable player damage------ */
 option Advanced_trajectory.EnablePlayerDamage
 {type = boolean,default = false,page = Advanced_trajectory_damage,translation = Advanced_trajectoryEnablePlayerDamage,}
+
+option Advanced_trajectory.enableBulletPenFlesh
+{type = boolean, default = true, page = Advanced_trajectory_damage, translation = Advanced_trajectoryenableBulletPenFlesh}
 
 option AT_VehicleDamageenable
 {type = boolean,page = Advanced_trajectory_damage,translation = ATvdenable,default = true,}
@@ -48,6 +51,16 @@ option Advanced_trajectory.ATY_damage
 	default = 1,
 	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectoryATY_damage,
+}
+
+option Advanced_trajectory.penDamageReductionMultiplier
+{
+	type = double,
+	min = 0,
+	max = 1,
+	default = 0.1,
+	page = Advanced_trajectory_damage,
+	translation = Advanced_trajectorypenDamageReductionMultiplier,
 }
 
 option Advanced_trajectory.DebugOffset
