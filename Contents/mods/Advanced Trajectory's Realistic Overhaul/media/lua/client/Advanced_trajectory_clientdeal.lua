@@ -86,7 +86,7 @@ end
 -------------------------------
 --DAMAGE PLAYER THAT WAS SHOT--
 --------------------------------
-local function damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
+local function damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg, playerOnlineID, playershotOnlineID)
 
     print("DamagePlayershotPVP - ", "playerShot:", playerShot, " damagepr:", damage, " firearmdamage:", baseGunDmg)
 
@@ -195,41 +195,20 @@ local function damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headS
 	local pain = math.min(stats:getPain() + playerShot:getBodyDamage():getInitialBitePain() * BodyPartType.getPainModifyer(shotpart:index()), 100)
 	stats:setPain(pain)
 
-    --playerShot:updateMovementRates()
-    --playerShot:getBodyDamage():Update()
+    playerShot:updateMovementRates()
+    playerShot:getBodyDamage():Update()
 
     playerShot:addBlood(50)
 
     local isDead = false
     if playerShot:getHealth() < 1 or playerShot:isDead() == true then
-        --print(playerShot:getUsername() ," is most likely dead.")
+        print(playerShot:getUsername() ," is most likely dead.")
         isDead = true
     end
 
-    Advanced_trajectory.writePVPLog({player, playerShot, nameShotPart, damage, baseGunDmg, playerDamageDealt, isDead})   
+    --Advanced_trajectory.writePVPLog({player, playerShot, nameShotPart, damage, baseGunDmg, playerDamageDealt, isDead})   
+    sendClientCommand("ATY_writePVPLog", "true", {playerOnlineID, playershotOnlineID, nameShotPart, damage, baseGunDmg, playerDamageDealt, isDead})
 end
-
-----------------------
---CREDITS TO LISOLA--
-----------------------
-function Advanced_trajectory.writePVPLog(arguments)    
-    local shooter                   = arguments[1]
-    local target                    = arguments[2]
-    local strShotPart               = arguments[3]   
-    local damagepr                  = arguments[4]                 
-    local baseGunDmg                = arguments[5]     
-    local damageDealtToTarget       = arguments[6]     
-    local targetIsDead              = arguments[7]   
-
-	local log1 = string.format(("[ATROPVP] \"%s\" shot \"%s\" (PartShot: \"%s\" || HitDmg: \"%s\" || BaseGunDmg: \"%s\"  || ActDmg: \"%s\")"), shooter:getUsername(), target:getUsername(), strShotPart, damagepr, baseGunDmg, damageDealtToTarget)
-	writeLog("ATROPVP", log1)
-
-	if targetIsDead == true then
-		local killLog = string.format(("[ATROPVP] \"%s\" was killed by \"%s\""), target:getUsername(), shooter:getUsername())
-		writeLog("ATROPVP", killLog)
-	end
-end
-
 
 
 local function Advanced_trajectory_OnServerCommand(module, command, arguments)
@@ -252,7 +231,6 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
         local footShotDmgMultiplier = arguments[7]
 
         local player     = getPlayerByOnlineID(playerOnlineID)
-        local playershot = getPlayerByOnlineID(playershotOnlineID)
 
         --print(player:getUsername(), " -> ", playershot:getUsername())
 
@@ -262,17 +240,27 @@ local function Advanced_trajectory_OnServerCommand(module, command, arguments)
         -- print(NonPvpZone.getNonPvpZone(getPlayer():getX(), getPlayer():getY()))
         -- print(SafeHouse.getSafeHouse(getPlayer():getCurrentSquare()))
 
-        --print("*-----------------------------------------------------------------------------*")
-        --print("damagepr: " .. damagepr)
-        --clientPlayershot:Say("damagepr: " .. damagepr)
-
-        --print("BEFORE DAMAGE: " , clientPlayershot, damagepr, baseGunDmg)
-
-        --damagePlayershotPVP(player, playerShot, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
-        damagePlayershotPVP(player, clientPlayershot, damagepr, baseGunDmg, headShotDmgMultiplier, bodyShotDmgMultiplier, footShotDmgMultiplier)   
-        --print("*-----------------------------------------------------------------------------*")
+        damagePlayershotPVP(player, clientPlayershot, damagepr, baseGunDmg, headShotDmgMultiplier, bodyShotDmgMultiplier, footShotDmgMultiplier, playerOnlineID, playershotOnlineID)   
     
-
+    -----------------------------------------------------------------------------------------------------------------------------------
+    --sendClientCommand("ATY_writePVPLog", "true", {player, playerShot, nameShotPart, damage, baseGunDmg, playerDamageDealt, isDead})--
+    -----------------------------------------------------------------------------------------------------------------------------------
+    elseif module == "ATY_writePVPLog" then
+        local shooter                   = getPlayerByOnlineID(arguments[1])
+        local target                    = getPlayerByOnlineID(arguments[2])
+        local strShotPart               = arguments[3]   
+        local damagepr                  = arguments[4]                 
+        local baseGunDmg                = arguments[5]     
+        local damageDealtToTarget       = arguments[6]     
+        local targetIsDead              = arguments[7]   
+    
+        local log1 = string.format(("[ATROPVP] \"%s\" shot \"%s\" (PartShot: \"%s\" || HitDmg: \"%s\" || BaseGunDmg: \"%s\"  || ActDmg: \"%s\")"), shooter:getUsername(), target:getUsername(), strShotPart, damagepr, baseGunDmg, damageDealtToTarget)
+        writeLog("ATROPVP", log1)
+    
+        if targetIsDead == true then
+            local killLog = string.format(("[ATROPVP] \"%s\" was killed by \"%s\""), target:getUsername(), shooter:getUsername())
+            writeLog("ATROPVP", killLog)
+        end
 
     ----------------------------------------------------------------------------
     --sendClientCommand("ATY_shotsfx", "true", {tablez, character:getOnlineID()})--
