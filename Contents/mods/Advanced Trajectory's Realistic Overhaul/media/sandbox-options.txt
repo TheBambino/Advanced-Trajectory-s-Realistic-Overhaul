@@ -42,7 +42,7 @@ option ATY_damagedisplay
 option AT_Blood
 {type = integer,page = Advanced_trajectory_damage,translation = ATblood,default = 100, min = 0, max = 100,}
 
-/* ------Damage multiplier (overall)------ */
+/* ------Zombie Damage multiplier (overall)------ */
 option Advanced_trajectory.ATY_damage
 {
 	type = double,
@@ -51,6 +51,17 @@ option Advanced_trajectory.ATY_damage
 	default = 1,
 	page = Advanced_trajectory_damage,
 	translation = Advanced_trajectoryATY_damage,
+}
+
+/* ------PvP Damage multiplier (overall)------ */
+option Advanced_trajectory.ATY_pvpdamage
+{
+	type = double,
+	min = 0,
+	max = 100,
+	default = 1,
+	page = Advanced_trajectory,
+	translation = Advanced_trajectoryATY_pvpdamage,
 }
 
 option Advanced_trajectory.penDamageReductionMultiplier
