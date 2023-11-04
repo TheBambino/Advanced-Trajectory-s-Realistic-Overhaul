@@ -1,7 +1,8 @@
 Advanced_trajectory = {}
 Advanced_trajectory.table = {}
 Advanced_trajectory.boomtable = {}
-Advanced_trajectory.aimcursor=nil
+Advanced_trajectory.aimcursor = nil
+Advanced_trajectory.initialZomOrChar = nil
 Advanced_trajectory.aimcursorsq = nil
 Advanced_trajectory.panel = {}
 Advanced_trajectory.panel.instance = nil
@@ -202,7 +203,7 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
 
     -- player table
     for sz,bz in pairs(prtable) do
-        mindistance = (bulletTable[1] - sz:getX())^2 + (bulletTable[2] - sz:getY())^2 
+        mindistance = (bulletTable[1] - sz:getX())^2 + (bulletTable[2] - sz:getY())^2
 
         if  mindistance<=0.4*damage then
             if mindistance < minpr[2] then
@@ -221,7 +222,7 @@ function Advanced_trajectory.getShootzombie(bulletTable,damage,isshotplayer,play
     --print('-----------END-------------------')
 
     -- returns BOOL on whether zombie or player was hit
-    return minzb[1],minpr[1]
+    return minzb[1], minpr[1]
 
 
 end
@@ -233,7 +234,7 @@ end
 -- checks the squares that the bullet travels
 -- this function determines whether bullets should "break" meaning they stop, pretty much a collision checker
 -- bullet square, dirc, bullet offset, player offset, nonsfx
-function Advanced_trajectory.checkiswallordoor(square,bulletAngle,bulletPosition,playerPosition,nosfx)
+function Advanced_trajectory.checkiswallordoor(square, bulletAngle, bulletPosition, playerPosition, nosfx)
     --print("----SQUARE---: ",   square:getX(), "  //  ", square:getY())
 
     local bulletPosFloorX = math.floor(bulletPosition[1])
@@ -445,11 +446,12 @@ end
 --EXPLOSION LOGIC ?? FUNC SECT---
 -----------------------------------
 function Advanced_trajectory.boomontick()
-
+    
     local tablenow = Advanced_trajectory.boomtable
+
     for kt,vt in pairs(tablenow) do
 
-        for kz,vz in pairs(vt[12]) do
+        for kz, vz in pairs(vt[12]) do
             Advanced_trajectory.itemremove(vt[12][vt[3] - vt[13]])
         end
 
@@ -458,28 +460,22 @@ function Advanced_trajectory.boomontick()
             break
         end
 
-        if vt[3]== 1 and  vt[7]==0 then 
-
-
+        if vt[3] == 1 and vt[7] == 0 then
             local itemornone = Advanced_trajectory.additemsfx(vt[5],vt[1]..tostring(vt[3]),vt[4][1],vt[4][2],vt[4][3])
-            table.insert(vt[12],itemornone)
-            vt[3]=vt[3]+1
+            table.insert(vt[12], itemornone)
+            vt[3] = vt[3] + 1
         elseif vt[7] > vt[6] and vt[3] <= vt[2] then
             vt[7] = 0
-
             local itemornone = Advanced_trajectory.additemsfx(vt[5],vt[1]..tostring(vt[3]),vt[4][1],vt[4][2],vt[4][3])
-            table.insert(vt[12],itemornone)
-            vt[3]=vt[3]+1
+            table.insert(vt[12], itemornone)
+            vt[3] = vt[3] + 1
         elseif vt[7] > vt[6] then
-            vt[7] = 0 
-            vt[3]=vt[3]+1
+            vt[7] = 0
+            vt[3] = vt[3] + 1
         end
-            
+
         vt[7] = vt[7] + getGameTime():getMultiplier()
-
     end
-
-
 end
 
 -----------------------------------
@@ -594,10 +590,8 @@ function Advanced_trajectory.OnPlayerUpdate()
 
     -- local isspwaepon = 
 
+    if  player:isAiming() and instanceof(weaitem, "HandWeapon") and (((weaitem:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) or (weaitem:getSwingAnim() == "Throw" and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablethrow"):getValue())) or Advanced_trajectory.Advanced_trajectory[weaitem:getFullType()]) then
 
-
-    if  player:isAiming() and instanceof(weaitem,"HandWeapon") and (((weaitem:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) or (weaitem:getSwingAnim() =="Throw" and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablethrow"):getValue())) or Advanced_trajectory.Advanced_trajectory[weaitem:getFullType()]) then
-       
         if getSandboxOptions():getOptionByName("Advanced_trajectory.showOutlines"):getValue() then
             weaitem:setMaxHitCount(1)
         else
@@ -608,18 +602,18 @@ function Advanced_trajectory.OnPlayerUpdate()
         --print("Rs: ", modEffectsTable[1], " / Fc: ", modEffectsTable[2], " / Re: ", modEffectsTable[3], " / Ra: ", modEffectsTable[4], " / A:", modEffectsTable[5])
 
         Mouse.setCursorVisible(false)
-        
+
         --print(player:getForwardDirection():getDirection()*360/(2*math.pi))
 
         -- print(getPlayer():getCoopPVP())
 
         local hasChainsaw = string.contains(weaitem:getAmmoType() or "","FlameFuel")
 
-        local level = 11-player:getPerkLevel(Perks.Aiming)
+        local level = 11 - player:getPerkLevel(Perks.Aiming)
         local realLevel = player:getPerkLevel(Perks.Aiming)
 
-        local gametimemul = getGameTime():getMultiplier() * 16/(level+10)
-        Advanced_trajectory.maxaimnum = weaitem:getAimingTime() + level*7 + getSandboxOptions():getOptionByName("Advanced_trajectory.maxaimnum"):getValue() 
+        local gametimemul = getGameTime():getMultiplier() * 16 / (level + 10)
+        Advanced_trajectory.maxaimnum = weaitem:getAimingTime() + (level * 7) + getSandboxOptions():getOptionByName("Advanced_trajectory.maxaimnum"):getValue() 
 
         -- max level = 10 - x * 3 = 27
         -- x = 1 (max)
@@ -630,7 +624,7 @@ function Advanced_trajectory.OnPlayerUpdate()
 
         local realMin = (level - 1) * minaimnumModifier
         if realLevel > 8 then
-            realMin = 0 
+            realMin = 0
         end
 
         ------------------------
@@ -642,7 +636,6 @@ function Advanced_trajectory.OnPlayerUpdate()
         local panicLv = player:getMoodles():getMoodleLevel(MoodleType.Panic) -- transparency
         local drunkLv = player:getMoodles():getMoodleLevel(MoodleType.Drunk) -- scaling and pos
 
-        
         local hyperLv = player:getMoodles():getMoodleLevel(MoodleType.Hyperthermia) -- dec aim speed
         local hypoLv = player:getMoodles():getMoodleLevel(MoodleType.Hypothermia) -- dec aim speed
         local tiredLv = player:getMoodles():getMoodleLevel(MoodleType.Tired) -- dec aim speed
@@ -696,20 +689,20 @@ function Advanced_trajectory.OnPlayerUpdate()
 
         -- with default modifiers of 1, it should total up to 1
         local speed = getSandboxOptions():getOptionByName("Advanced_trajectory.reducespeed"):getValue() 
-        local reduceSpeed = speed 
+        local reduceSpeed = speed
 
         -- needs to subtract at most 1/3 --> 1/(x-4) = 1/3
         -- no effects for lv 1 temp serverity
         if hyperLv > 1 then
-            reduceSpeed = reduceSpeed - (speed * 1/(hyperHypoModifier + 6-hyperLv))
+            reduceSpeed = reduceSpeed - (speed * 1 / (hyperHypoModifier + 6 - hyperLv))
         end
 
         if hypoLv > 1 then
-            reduceSpeed = reduceSpeed - (speed * 1/(hyperHypoModifier + 6-hypoLv))
+            reduceSpeed = reduceSpeed - (speed * 1 / (hyperHypoModifier + 6 - hypoLv))
         end
 
         if tiredLv > 0 then
-            reduceSpeed = reduceSpeed - (speed * 1/(tiredModifier + 6-tiredLv))
+            reduceSpeed = reduceSpeed - (speed * 1 / (tiredModifier + 6 - tiredLv))
         end
 
         ----------------------------
@@ -720,22 +713,22 @@ function Advanced_trajectory.OnPlayerUpdate()
         -- PAIN VARIABLES float values (0 - 200)
         -- 30 lv1, 50 lv2, 100 lv3, 150-200 lv 4
         -- def reduceSpeed for all aim levels: 1.1
-        local handPainL = bodyDamage:getBodyPart(BodyPartType.Hand_L):getPain()   
-        local forearmPainL = bodyDamage:getBodyPart(BodyPartType.ForeArm_L):getPain()  
-        local upperarmPainL = bodyDamage:getBodyPart(BodyPartType.UpperArm_L):getPain()  
+        local handPainL = bodyDamage:getBodyPart(BodyPartType.Hand_L):getPain()
+        local forearmPainL = bodyDamage:getBodyPart(BodyPartType.ForeArm_L):getPain()
+        local upperarmPainL = bodyDamage:getBodyPart(BodyPartType.UpperArm_L):getPain()
 
-        local handPainR = bodyDamage:getBodyPart(BodyPartType.Hand_R):getPain()  
-        local forearmPainR = bodyDamage:getBodyPart(BodyPartType.ForeArm_R):getPain()  
-        local upperarmPainR = bodyDamage:getBodyPart(BodyPartType.UpperArm_R):getPain()  
+        local handPainR = bodyDamage:getBodyPart(BodyPartType.Hand_R):getPain()
+        local forearmPainR = bodyDamage:getBodyPart(BodyPartType.ForeArm_R):getPain()
+        local upperarmPainR = bodyDamage:getBodyPart(BodyPartType.UpperArm_R):getPain()
 
         local totalPain = handPainL + forearmPainL + upperarmPainL + handPainR + forearmPainR + upperarmPainR
-        local painModifider = getSandboxOptions():getOptionByName("Advanced_trajectory.painModifier"):getValue() 
-        reduceSpeed =  reduceSpeed - painModifider * totalPain/2 
+        local painModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.painModifier"):getValue() 
+        reduceSpeed =  reduceSpeed - painModifier * (totalPain / 2)
 
         local minReduceSpeed = 0.1
         if reduceSpeed < minReduceSpeed then
             reduceSpeed = minReduceSpeed
-        end 
+        end
 
         ------------------------
         -- SNEEZE, COUGH SECT---
@@ -855,7 +848,7 @@ function Advanced_trajectory.OnPlayerUpdate()
                 Advanced_trajectory.exhaleCounter = Advanced_trajectory.exhaleCounter - exhaleModifier4*constantTime
             end
         end
-      
+
         if enduranceLv == 0 then
             Advanced_trajectory.inhaleCounter = 0
             Advanced_trajectory.exhaleCounter = 0
@@ -863,7 +856,7 @@ function Advanced_trajectory.OnPlayerUpdate()
 
         --print("inhaleCounter / exhaleCounter: ", Advanced_trajectory.inhaleCounter, " / ", Advanced_trajectory.exhaleCounter)
         --print("isInhale / isExhale: ", isInhale, " / ", isExhale)
-        
+
         ----------------------------
         -- TURNING AND MOVING SECT--
         ----------------------------
@@ -872,7 +865,7 @@ function Advanced_trajectory.OnPlayerUpdate()
             Advanced_trajectory.aimnum = Advanced_trajectory.aimnum +gametimemul*getSandboxOptions():getOptionByName("Advanced_trajectory.moveeffect"):getValue()*((drunkLv*drunkActionEffectModifier)+1)
             Advanced_trajectory.maxFocusCounter = 100
         end
-        
+
 
         if player:getVariableBoolean("isTurning") then
             Advanced_trajectory.aimnum = Advanced_trajectory.aimnum +gametimemul*getSandboxOptions():getOptionByName("Advanced_trajectory.turningeffect"):getValue()*((drunkLv*drunkActionEffectModifier)+1)
@@ -888,7 +881,7 @@ function Advanced_trajectory.OnPlayerUpdate()
             Advanced_trajectory.aimnum = Advanced_trajectory.aimnum +constantTime*reloadEffectModifier*reloadlevel
             Advanced_trajectory.alpha = Advanced_trajectory.alpha - gametimemul*0.1
             Advanced_trajectory.maxFocusCounter = 100
-        end           
+        end
 
         ----------------------------
         ------- AIMNUM SECT---------
@@ -1082,6 +1075,9 @@ function Advanced_trajectory.OnPlayerUpdate()
         local playerZ = math.floor(player:getZ())
         local playerNum = player:getPlayerNum()
 
+        local ZomOrChar = nil
+        Advanced_trajectory.initialZomOrChar = nil
+
         -- Initialize a flag to check if we are aiming at an object
         local isAimingObject = false
 
@@ -1109,13 +1105,14 @@ function Advanced_trajectory.OnPlayerUpdate()
 
                         -- Iterate through moving objects in the grid square
                         for zz = 1, movingObjects:size() do
-                            local zombie = movingObjects:get(zz - 1)
+                            zomOrChar = movingObjects:get(zz - 1)
 
                             -- Check if the object is an IsoZombie or IsoPlayer
-                            if instanceof(zombie, "IsoZombie") or instanceof(zombie, "IsoPlayer") then
+                            if instanceof(zomOrChar, "IsoZombie") or instanceof(zomOrChar, "IsoPlayer") then
                                 -- Set the aim level and flag, then return
                                 Advanced_trajectory.aimlevels = Z
                                 isAimingObject = true
+                                Advanced_trajectory.initialZomOrChar = zomOrChar
                                 return
                             end
                         end
@@ -1125,11 +1122,12 @@ function Advanced_trajectory.OnPlayerUpdate()
                         local movingObjects = sq:getMovingObjects()
 
                         for zz = 1, movingObjects:size() do
-                            local zombie = movingObjects:get(zz - 1)
+                            zomOrChar = movingObjects:get(zz - 1)
 
-                            if instanceof(zombie, "IsoZombie") or instanceof(zombie, "IsoPlayer") then
+                            if instanceof(zomOrChar, "IsoZombie") or instanceof(zomOrChar, "IsoPlayer") then
                                 Advanced_trajectory.aimlevels = Z
                                 isAimingObject = true
+                                Advanced_trajectory.initialZomOrChar = zomOrChar
                                 return
                             end
                         end
@@ -1142,20 +1140,9 @@ function Advanced_trajectory.OnPlayerUpdate()
         if not isAimingObject then
             Advanced_trajectory.aimlevels = nil
         end
+        -- print(Advanced_trajectory.aimlevels)  
 
-
-        -- print(Advanced_trajectory.aimlevels)
-        
-
-
-
-
-
-      
-
-        
-        
-    else 
+    else
         if Advanced_trajectory.aimcursor then
             getCell():setDrag(nil, 0);
             Advanced_trajectory.aimcursor=nil
@@ -1170,7 +1157,6 @@ function Advanced_trajectory.OnPlayerUpdate()
         Advanced_trajectory.aimnum = Advanced_trajectory.aimnum + constantTime
         Advanced_trajectory.maxFocusCounter = 100
         Advanced_trajectory.alpha = 0
-        
 
     end
 end
@@ -1254,11 +1240,11 @@ function displayDamageOnZom(damagezb, Zombie)
     table.insert(Advanced_trajectory.damagedisplayer,{60,damagea,sx,sy,sx,sy})
 end
 
-function searchAndDmgClothing(player, shotpart, damage)
+function searchAndDmgClothing(Zombie, shotpart, damage)
     --local sayDamage = getSandboxOptions():getOptionByName("Advanced_trajectory.DebugSayClothingDmg"):getValue()
 
     local hasBulletProof= false
-    local playerWornInv = player:getWornItems();
+    local zombieWornInv = Zombie:getWornItems();
 
     -- use this to compare shot part and covered part
     local nameShotPart = BodyPartType.getDisplayName(shotpart)
@@ -1271,26 +1257,26 @@ function searchAndDmgClothing(player, shotpart, damage)
     local shotBulletProofItems = {}
     local shotNormalItems = {}
 
-    for i=0, playerWornInv:size()-1 do
-        local item = playerWornInv:getItemByIndex(i);
+    for i = 0, zombieWornInv:size() - 1 do
+        local item = zombieWornInv:getItemByIndex(i);
 
         if item and instanceof(item, "Clothing") then
             local listBloodClothTypes = item:getBloodClothingType()
 
             -- arraylist of BloodBodyPartTypes
-            local listOfCoveredAreas = BloodClothingType.getCoveredParts(listBloodClothTypes)   
-    
+            local listOfCoveredAreas = BloodClothingType.getCoveredParts(listBloodClothTypes)
+
             -- size of list
-            local areaCount = BloodClothingType.getCoveredPartCount(listBloodClothTypes)   
-    
-            for i=0, areaCount-1 do
+            local areaCount = BloodClothingType.getCoveredPartCount(listBloodClothTypes)
+
+            for j = 0, areaCount - 1 do
                 -- returns BloodBodyPartType
-                local coveredPart = listOfCoveredAreas:get(i)
+                local coveredPart = listOfCoveredAreas:get(j)
                 local nameCoveredPart = coveredPart:getDisplayName()
-    
+
                 if nameCoveredPart == nameShotPart then
                     shotBloodPart = coveredPart
-                    
+
                     -- check if has bullet proof armor
                     local bulletDefense = item:getBulletDefense()
                     --print("Bullet Defense: ", bulletDefense)
@@ -1309,27 +1295,28 @@ function searchAndDmgClothing(player, shotpart, damage)
     if hasBulletProof then
         for i = 1, #shotBulletProofItems do
             local item = shotBulletProofItems[i]
-            item:setCondition(item:getCondition()-damage)
-            --player:addHole(shotBloodPart)
+            item:setCondition(item:getCondition() - damage)
+            --Zombie:addHole(shotBloodPart)
             --print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
         end
     else
         for i = 1, #shotNormalItems do
             local item = shotNormalItems[i]
-            item:setCondition(item:getCondition()-damage)
-            player:addHole(shotBloodPart, true)
+            item:setCondition(item:getCondition() - damage)
+            --Zombie:addHole(shotBloodPart, true)
             --print(nameShotPart, " [", item:getName() ,"] clothing damaged.")
         end
     end
 end
 
 -- function is here for testing through voodoo
-function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
+function damageZombieshot(Zombie, damage, baseGunDmg, headShotDmg, bodyShotDmg, footShotDmg)
+
     local highShot = {
         BodyPartType.Head, BodyPartType.Head,
         BodyPartType.Neck
     }
-        
+
     local midShot = {
         BodyPartType.Torso_Upper, BodyPartType.Torso_Lower,
         BodyPartType.UpperArm_L, BodyPartType.UpperArm_R,
@@ -1337,7 +1324,7 @@ function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, 
         BodyPartType.ForeArm_L,  BodyPartType.ForeArm_R,
         BodyPartType.Hand_L,     BodyPartType.Hand_R
     }
-    
+
     local lowShot = {
         BodyPartType.UpperLeg_L, BodyPartType.UpperLeg_R,
         BodyPartType.UpperLeg_L, BodyPartType.UpperLeg_R,
@@ -1363,27 +1350,27 @@ function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, 
         local randNum = ZombRand(100)
 
         -- lowShot
-        if randNum <= (10+incFootChance) then                   
-            shotpart = lowShot[ZombRand(#lowShot)+1]
-        
+        if randNum <= (10 + incFootChance) then
+            shotpart = lowShot[ZombRand(#lowShot) + 1]
+
         -- highShot
-        elseif randNum > (10+incFootChance) and randNum <= (10+incFootChance)+10+incHeadChance then
-            shotpart = highShot[ZombRand(#highShot)+1]
-        
+        elseif randNum > (10 + incFootChance) and randNum <= (10 + incFootChance) + 10 + incHeadChance then
+            shotpart = highShot[ZombRand(#highShot) + 1]
+
         -- midShot
         else
-            shotpart = midShot[ZombRand(#midShot)+1]
+            shotpart = midShot[ZombRand(#midShot) + 1]
         end
 
     end
 
-    searchAndDmgClothing(player, shotpart, 1)
-    
-    local bodypart = player:getBodyDamage():getBodyPart(shotpart)
+    searchAndDmgClothing(Zombie, shotpart, 1)
+
+    local bodypart = Zombie:getBodyDamage():getBodyPart(shotpart)
 
     -- float (part, isBite, isBullet)
     -- bulletdefense is usually 100
-    local defense = player:getBodyPartClothingDefense(shotpart:index(),false,true)
+    local defense = Zombie:getBodyPartClothingDefense(shotpart:index(),false,true)
 
     --print("BodyPartClothingDefense: ", defense)
 
@@ -1393,7 +1380,6 @@ function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, 
             local deepWound = bodypart:isDeepWounded()
             local deepWoundTime = bodypart:getDeepWoundTime()
             local bleedTime = bodypart:getBleedingTime()
-            --bodypart:setHaveBullet(false, 0)
             bodypart:setDeepWoundTime(deepWoundTime)
             bodypart:setDeepWounded(deepWound)
             bodypart:setBleedingTime(bleedTime)
@@ -1406,10 +1392,39 @@ function damagePlayershot(player, damage, baseGunDmg, headShotDmg, bodyShotDmg, 
         defense = 0.9
     end
 
-    local playerDamageDealt = baseGunDmg*damage
-    Advanced_trajectory.dmgDealtToPlayer = playerDamageDealt
+    Zombie:getBodyDamage():ReduceGeneralHealth(baseGunDmg * damage * 0.6 * (1 - defense))
+end
 
-    player:getBodyDamage():ReduceGeneralHealth(baseGunDmg*damage*0.6*(1-defense))
+--function handlePlayerShot(Playershot, vt, damagepr)
+function Advanced_trajectory.handlePlayerShot(playershot, attacker, damagepr, damagemod, firearm, aimnum)
+	print("RED-ATRO-REDUX: " , "playershot: ", playershot , "attacker: ", attacker)
+	if playershot == nil or attacker == nil then return end --for debug
+
+    -- isClient() returns true if the code is being run in MP
+    if isClient() then
+		print("RED-ATRO-REDUX: " , "isClient() - " , isClient())
+        sendClientCommand("ATY_shotplayer", "true", {playershot:getOnlineID(), attacker:getOnlineID(), damagepr, damagemod, firearm, aimnum})
+    end
+    --else
+    --    damagePlayershot(Playershot, damagepr, vt[6], Advanced_trajectory.HeadShotDmgPlayerMultiplier, Advanced_trajectory.BodyShotDmgPlayerMultiplier, Advanced_trajectory.FootShotDmgPlayerMultiplier)
+    --end
+
+    -- assume player's dead at this point
+    if playershot:getBodyDamage():getHealth() <= 0.1 or playershot:isDead() then
+        if isClient() then
+            sendServerCommand("ATY_killedplayer", "true", {playershot, attacker})
+        end
+        Advanced_trajectory.playerKilled = playershot:getUsername() .. "(" .. playershot:getOnlineID() .. ")"
+    else
+        if firearm:isSplatBloodOnNoDeath() then
+            playershot:splatBlood(2, 0.2)
+        end
+
+        if firearm:isKnockBackOnNoDeath() and playershot:getXp() ~= nil then
+            playershot:getXp():AddXP(Perks.Strength, 2.0)
+        end
+    end
+
 end
 
 -----------------------------------
@@ -1435,10 +1450,10 @@ function Advanced_trajectory.checkontick()
             lb[2]:AddBatchedDraw(lb[3], lb[4], true)
 
             -- print(Advanced_trajectory.damagedisplayer[3] - Advanced_trajectory.damagedisplayer[5])
-            
+
         end
-    
-    
+
+
     end
 
     local tablenow = Advanced_trajectory.table
@@ -1472,7 +1487,7 @@ function Advanced_trajectory.checkontick()
                         -- print("Boom")
                         Advanced_trajectory.Boom(vt[2],vt[22])
                     end
-                    
+
                 end
                 Advanced_trajectory.itemremove(vt[1]) 
                 tablenow[kt]=nil
@@ -1501,7 +1516,7 @@ function Advanced_trajectory.checkontick()
                     tablenow[kt]=nil
                     break
                 end
-            
+
             elseif vt[7]<0 and vt[9] ~= "Grenade"  then
 
                 if vt["wallcarmouse"] or vt["wallcarzombie"]then
@@ -1533,12 +1548,12 @@ function Advanced_trajectory.checkontick()
             if  vt["isparabola"]  then
 
                 vt[4][3] = 0.5-vt["isparabola"]*vt[17]*(vt[17]-vt[18])
-                
+
                 if vt[4][3]<=0.3  then
                     if not vt["nonsfx"]  then
                         Advanced_trajectory.Boom(vt[2],vt[22])
                     end
-                    
+
                     if vt[22][2] > 0 then
                         Advanced_trajectory.boomsfx(vt[2],vt["boomsfx"][1],vt["boomsfx"][2],vt["boomsfx"][3])
                     end
@@ -1551,7 +1566,7 @@ function Advanced_trajectory.checkontick()
 
             -- NOTES IMPORTANT, WORK HERE: Headshot, Bodypart, Footpart
             if  (vt[9] ~= "Grenade" or (vt[22][8]or 0) > 0 or vt["wallcarzombie"]) and  not vt["wallcarmouse"] then
-                
+
                 -- bool value of whether players can damage each other with bullets
                 local isshotplayer = getSandboxOptions():getOptionByName("Advanced_trajectory.EnablePlayerDamage"):getValue()
 
@@ -1572,23 +1587,21 @@ function Advanced_trajectory.checkontick()
                 angleammooff = angleammooff / 30
                 --print('angleammo: ', angleammo)
                 --print('angleammooff: ', angleammooff)
-               
+
                 local admindel = vt["animlevels"] - math.floor(vt[4][3])
                 local shootlevel =  vt[4][3] + admindel
 
                 if  vt["isparabola"] then
-                    
+
                     shootlevel  = vt[4][3]
                 end
-                    
+
                 --print('admindel (for x and y): ', admindel)
                 --print('shootlevel (z): ', shootlevel)
 
-                local Playershot
-
                 -- returns object zombie and player that was shot
-                local Zombie,Playershot =  Advanced_trajectory.getShootzombie({vt[4][1] + admindel * 3, vt[4][2]  + admindel * 3, shootlevel}, 1 + angleammooff , isshotplayer, {vt[20][1], vt[20][2], vt[20][3]})
-                
+                local Zombie, Playershot =  Advanced_trajectory.getShootzombie({vt[4][1] + admindel * 3, vt[4][2]  + admindel * 3, shootlevel}, 1 + angleammooff , isshotplayer, {vt[20][1], vt[20][2], vt[20][3]})
+
                 -- headshot on zombie
                 local damagezb = 0
 
@@ -1622,37 +1635,54 @@ function Advanced_trajectory.checkontick()
                 end
 
                 -- print(Playershot)
-                
+
                 -------------------------------------
                 ---DEAL WITH ALIVE PLAYER WHEN HIT---
                 -------------------------------------
                 -- NOTES: if it's a non friendly player is shot at, determine damage done and which body part is affected
                 -- vt[19] is the player itself (you)
                 -- the player shot can not be the client player (you can't shoot you)
-                if not vt["nonsfx"] and Playershot and vt[19] and Playershot ~= vt[19] and (Faction.getPlayerFaction(Playershot)~=Faction.getPlayerFaction(vt[19]) or not Faction.getPlayerFaction(Playershot))     then
-                    
-                    Playershot:setX(Playershot:getX()+0.15*vt[3][1])
-                    Playershot:setY(Playershot:getY()+0.15*vt[3][2])
+                if not vt["nonsfx"] and Playershot and vt[19] and Playershot ~= vt[19] and (Faction.getPlayerFaction(Playershot)~=Faction.getPlayerFaction(vt[19]) or not Faction.getPlayerFaction(Playershot)) then
+
+                    Playershot:setX(Playershot:getX() + 0.15 * vt[3][1])
+                    Playershot:setY(Playershot:getY() + 0.15 * vt[3][2])
+                    Playershot:addBlood(100)
+
+                    Advanced_trajectory.handlePlayerShot(Playershot, vt[19], damagepr, vt[23], vt[24], Advanced_trajectory.aimnumBeforeShot)
+                    --[[
+                    Playershot:setX(Playershot:getX() + 0.15 * vt[3][1])
+                    Playershot:setY(Playershot:getY() + 0.15 * vt[3][2])
                     Playershot:addBlood(100)
 
                     -- isClient() returns true if the code is being run in MP
                     if isClient() then
-                        sendClientCommand("ATY_shotplayer","true",{damagepr,vt[6],Playershot:getOnlineID()})
-                    else
-                        damagePlayershot(Playershot, damagepr, vt[6], Advanced_trajectory.HeadShotDmgPlayerMultiplier, Advanced_trajectory.BodyShotDmgPlayerMultiplier, Advanced_trajectory.FootShotDmgPlayerMultiplier)
+                        sendClientCommand("ATY_shotplayer","true",{Playershot:getOnlineID(), damagepr, vt[6]})
                     end
+                    --else
+                    --    damagePlayershot(Playershot, damagepr, vt[6], Advanced_trajectory.HeadShotDmgPlayerMultiplier, Advanced_trajectory.BodyShotDmgPlayerMultiplier, Advanced_trajectory.FootShotDmgPlayerMultiplier)
+                    --end
 
                     -- assume player's dead at this point
-                    if Playershot:getHealth()<=0.1 then 
+                    if Playershot:getHealth() <= 0.1 or Playershot:isDead() then
                         if isClient() then
-                            sendServerCommand("ATY_killedplayer","true",{Playershot:getOnlineID()})
+                            sendServerCommand("ATY_killedplayer", "true", {Playershot, vt[19]})
                         end
-                        Advanced_trajectory.playerKilled = Playershot:getUsername() .. "(" ..Playershot:getOnlineID() .. ")"
+                        Advanced_trajectory.playerKilled = Playershot:getUsername() .. "(" .. Playershot:getOnlineID() .. ")"
+                    else
+                        if weapon:isSplatBloodOnNoDeath() then
+                            target:splatBlood(2, 0.2)
+                        end
+
+                        if weapon:isKnockBackOnNoDeath() and character:xp ~= nil then
+                            character:xp:AddXP(PerkFactory.Perks.Strength, 2.0)
+                        end
                     end
+                    ]]--
 
                     Advanced_trajectory.itemremove(vt[1])
-                    tablenow[kt]=nil
+                    tablenow[kt] = nil
                     break
+
                 end
 
                 -------------------------------------
@@ -1665,7 +1695,7 @@ function Advanced_trajectory.checkontick()
                         vt[19]:Say(getText(saywhat))
                     end
 
-                    damagePlayershot(vt[19], damagezb, 1, Advanced_trajectory.HeadShotDmgZomMultiplier * vt[6] * 0.1, Advanced_trajectory.BodyShotDmgZomMultiplier * vt[6] * 0.1, Advanced_trajectory.FootShotDmgZomMultiplier * vt[6] * 0.1)
+                    damageZombieshot(vt[19], damagezb, 1, Advanced_trajectory.HeadShotDmgZomMultiplier * vt[6] * 0.1, Advanced_trajectory.BodyShotDmgZomMultiplier * vt[6] * 0.1, Advanced_trajectory.FootShotDmgZomMultiplier * vt[6] * 0.1)
 
                     if vt["wallcarzombie"] or vt[9] == "Grenade"then
 
@@ -1676,7 +1706,7 @@ function Advanced_trajectory.checkontick()
                         if not vt["nonsfx"] then
                             Advanced_trajectory.Boom(vt[2], vt[22])
                         end
-                        
+
                         Advanced_trajectory.itemremove(vt[1])
                         tablenow[kt] = nil
                         break
@@ -1684,15 +1714,15 @@ function Advanced_trajectory.checkontick()
                     elseif not vt["nonsfx"]  then
                         if vt[9] == "flamethrower" then
                             Zombie:setOnFire(true)
-    
+
                             -- Uncomment this section if you want to handle GrenadeLauncher differently
                             -- elseif vt[9] == "GrenadeLauncher" then
                             --     tanksuperboom(vt[2])
                             -- end
                         end
-                        
+
                         if isClient() then
-                            sendClientCommand("ATY_cshotzombie","true",{Zombie:getOnlineID(),vt[19]:getOnlineID()})
+                            sendClientCommand("ATY_cshotzombie", "true", {Zombie:getOnlineID(),vt[19]:getOnlineID()})
                         end
 
                         -- give xp upon hit
@@ -1711,49 +1741,48 @@ function Advanced_trajectory.checkontick()
                         Zombie:setHealth(Zombie:getHealth()-damagezb)
                         Zombie:setHitReaction("Shot")
                         Zombie:addBlood(getSandboxOptions():getOptionByName("AT_Blood"):getValue())
-                        
+
                         -- if zombie's health is very low, just kill it (recall full health is over 140) and give xp like usual
-                        if Zombie:getHealth()<=0.1 then                           
+                        if Zombie:getHealth() <= 0.1 then
                             -- if zombie's health is very low, just kill it (recall full health is over 140) and give xp like usual                         
                             if vt[19] then
                                 if isClient() then
-                                    sendClientCommand("ATY_killzombie","true",{Zombie:getOnlineID()})
+                                    sendClientCommand("ATY_killzombie", "true", {Zombie:getOnlineID()})
                                 end
 
                                 Zombie:Kill(vt[19])
-                                            
-                                vt[19]:setZombieKills(vt[19]:getZombieKills()+1)
+
+                                vt[19]:setZombieKills(vt[19]:getZombieKills() + 1)
                                 vt[19]:setLastHitCount(1)
 
                                 local killXP = getSandboxOptions():getOptionByName("Advanced_trajectory.XPKillModifier"):getValue()
                                 -- multiplier to 0.67
-                                triggerEvent("OnWeaponHitXp",vt[19], vt[19]:getPrimaryHandItem(), Zombie, damagezb) -- OnWeaponHitXp From "KillCount",used(wielder,weapon,victim,damage)
-                            
+                                triggerEvent("OnWeaponHitXp", vt[19], vt[19]:getPrimaryHandItem(), Zombie, damagezb) -- OnWeaponHitXp From "KillCount",used(wielder,weapon,victim,damage)
+
                                 if isServer() == false then
                                     Events.OnWeaponHitXp.Add(vt[19]:getXp():AddXP(Perks.Aiming, killXP));
                                 end
-                            end 
+                            end
                         end
 
                         checkBowAndCrossbow(vt[19], Zombie)
-                        
+
                     end
-                    
+
 
                     Advanced_trajectory.itemremove(vt[1])
 
                     if not vt["ThroNumber"] then vt["ThroNumber"] = 1 end
-                    vt["ThroNumber"] = vt["ThroNumber"]-1
-                    vt[6] = 0.36*vt[6]
+                    vt["ThroNumber"] = vt["ThroNumber"] - 1
+                    vt[6] = 0.36 * vt[6]
 
-                    if not vt[11] and (vt["ThroNumber"] <= 0  )then
-                        tablenow[kt]=nil
+                    if not vt[11] and (vt["ThroNumber"] <= 0) then
+                        tablenow[kt] = nil
                         break
-                        
-                    end  
+                    end
                 end
-  
-            end  
+
+            end
         end
 
     end
@@ -1769,13 +1798,13 @@ Events.OnTick.Add(Advanced_trajectory.checkontick)
 --SHOOTING PROJECTILE FUNC SECT---
 -----------------------------------
 function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
-    
+
     if getSandboxOptions():getOptionByName("Advanced_trajectory.showOutlines"):getValue() and instanceof(handWeapon,"HandWeapon") and (handWeapon:isRanged() and getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue()) then
         handWeapon:setMaxHitCount(0)
     end
 
     local playerlevel = character:getPerkLevel(Perks.Aiming)
-    local modEffectsTable = Advanced_trajectory.getAttachmentEffects(handWeapon)  
+    local modEffectsTable = Advanced_trajectory.getAttachmentEffects(handWeapon)
 
     -- print(character)
     local item
@@ -1783,7 +1812,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     local weaponname = ""
     local rollspeed = 0
     local iscanthrough = false
-    local ballisticspeed = 0.15  
+    local ballisticspeed = 0.15
     local ballisticdistance = handWeapon:getMaxRange(character) * 1.5
     local itemtypename = ""
     local iscanbigger = 0
@@ -1797,12 +1826,14 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     local deltY
     local ProjectileCount = 1
 
-    local throwinfo ={}
-    local ispass =false
+    local throwinfo = {}
+    local ispass = false
 
 
     local square
     local _damage
+    local _damagemodifier
+    local _firearm
 
     -- direction from -pi to pi OR -180 to 180 deg
     -- N (top left corner): pi,-pi  (180, -180)
@@ -1834,7 +1865,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
     --print("MaxProjCone: ", maxProjCone)
     --print("Aimrate: ", Advanced_trajectory.aimrate )
-    
+
     -- NOTES: I'm assuming aimrate, which is affected by aimnum, determines how wide the bullets can spread.
     -- adding dirc (direction player is facing) will cause bullets to go towards the direction of where player is looking
     dirc = dirc + ZombRandFloat(-Advanced_trajectory.aimrate,Advanced_trajectory.aimrate)
@@ -1842,11 +1873,7 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
     deltX = math.cos(dirc)
     deltY = math.sin(dirc)
 
-    
-
-
-
-    local tablez = 
+    local tablez =
     {
         item,                       --1 item obj
         square,                     --2 square obj
@@ -1869,8 +1896,12 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         player,                     --19 players
         {offx, offy, offz},         --20 original offset PLAYER POS
         0,                          --21 count
-        throwinfo                   --22 thrown object attributes                                                       
+        throwinfo,                  --22 thrown object attributes
+        _damagemodifier,            --23 damage modifier
+        _firearm,                   --24 firearm
     }
+
+    tablez[24] = handWeapon
 
     tablez["boomsfx"] = {}
     tablez["animlevels"] = Advanced_trajectory.aimlevels or math.floor(tablez[4][3])
@@ -1883,58 +1914,49 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         handWeapon:getFireRange()
     }
 
-
-
-
     tablez[22][7] = handWeapon:getExplosionSound()
 
     tablez["ThroNumber"] = 1
 
-
-    local isspweapon = Advanced_trajectory.Advanced_trajectory[handWeapon:getFullType()] 
+    local isspweapon = Advanced_trajectory.Advanced_trajectory[handWeapon:getFullType()]
     if isspweapon then
         for lk,pk in pairs(isspweapon) do
             if lk == 4 then
                 tablez[4][1] = tablez[4][1]+pk[1]*tablez[3][1]
                 tablez[4][2] = tablez[4][2]+pk[2]*tablez[3][2]
                 tablez[4][3] = tablez[4][3]+pk[3]
-            else 
+            else
                 tablez[lk] = pk
             end
-            
+
         end
         ispass = true
     end
 
     if Advanced_trajectory.aimcursorsq then
-        tablez[18] = ((Advanced_trajectory.aimcursorsq:getX()+0.5-offx)^2+(Advanced_trajectory.aimcursorsq:getY()+0.5-offy)^2)^0.5
+        tablez[18] = ((Advanced_trajectory.aimcursorsq:getX() + 0.5 - offx)^2 + (Advanced_trajectory.aimcursorsq:getY() + 0.5 - offy)^2)^0.5
     else
-        tablez[18] =handWeapon:getMaxRange(character)
+        tablez[18] = handWeapon:getMaxRange(character)
     end
 
     local isHoldingShotgun = false
-    if not ispass then  
+    if not ispass then
         if getSandboxOptions():getOptionByName("Advanced_trajectory.Enablethrow"):getValue() and handWeapon:getSwingAnim() =="Throw" then  --投掷物
 
-            
-    
-            
-            
+
             if tablez[22][1] == 0 and tablez[22][2] == 0 and tablez[22][4] == 0 then
                 tablez[22][6] = 0.016
-                
+
             else
                 tablez[22][6] = 0.04 -- radian
             end
-    
-            
+
             tablez[22][9] = handWeapon:canBeReused()
-    
-    
+
             tablez[7] = tablez[18]
-            tablez[9]="Grenade"
+            tablez[9] = "Grenade"
             tablez[14] = handWeapon:getFullType()
-            tablez[8] = ""
+            tablez[8] = 0
             tablez[11] = false
             tablez[15] = false
 
@@ -1943,10 +1965,10 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
             tablez[10] = 6
             tablez[12] = 0.3
-    
+
             tablez[22][10] = tablez[14]
             tablez["isparabola"] = tablez[22][6]
-        
+
             -- disabling enable range means guns don't work (no projectiles)
         elseif getSandboxOptions():getOptionByName("Advanced_trajectory.Enablerange"):getValue() and handWeapon:getSubCategory() =="Firearm" then ----枪
 
@@ -1957,16 +1979,16 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
             if  (string.contains(handWeapon:getAmmoType() or "","Shotgun") or string.contains(handWeapon:getAmmoType() or "","shotgun") or string.contains(handWeapon:getAmmoType() or "","shell") or string.contains(handWeapon:getAmmoType() or "","Shell")) then
                 local shotgunDistanceModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgunDistanceModifier")
-                
+
                 tablez[9] = "Shotgun" --weapon name
 
                 --wpn sndfx
                 if hideTracer then
                     --print("Empty")
-                    tablez[14] = "Empty.aty_Shotguna"    
+                    tablez[14] = "Empty.aty_Shotguna"
                 else
                     --print("Base")
-                    tablez[14] = "Base.aty_Shotguna"  
+                    tablez[14] = "Base.aty_Shotguna"
                 end
 
                 tablez[12] = 1.6    --ballistic speed
@@ -1992,14 +2014,14 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                 local hasChainsaw = string.contains(handWeapon:getAmmoType() or "", "FlameFuel") and string.contains(handWeapon:getName() or "", "Chainsaw")
                 if hideTracer or hasChainsaw then
                     --print("Empty")
-                    tablez[14] = "Empty.aty_revolversfx"  
+                    tablez[14] = "Empty.aty_revolversfx"
                 else
                     --print("Base")
-                    tablez[14] = "Base.aty_revolversfx" 
+                    tablez[14] = "Base.aty_revolversfx"
                 end
 
                 tablez[12] = 1.8
-                tablez[15]  = false
+                tablez[15] = false
 
                 tablez[4][1] = tablez[4][1] + offset*tablez[3][1]
                 tablez[4][2] = tablez[4][2] + offset*tablez[3][2]
@@ -2011,9 +2033,9 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
             end
         else
             return
-            
+
         end
-        
+
 
     end
 
@@ -2022,23 +2044,25 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
     -- NOTES: tablez[6] is damage, firearm damages vary from 0 to 2. Example, M16 has min to max: 0.8 to 1.4 (source wiki)
     tablez[6] = tablez[6] or (handWeapon:getMinDamage() + ZombRandFloat(0.1, 1.3) * (0.5 + handWeapon:getMaxDamage() - handWeapon:getMinDamage()))
-    
+    tablez[23] =  1
+
     -- firearm crit chance can vary from 0 to 30. Ex, M16 has a crit chance of 30 (source wiki)
     -- Rifles - 25 to 30
     -- M14 - 0 crit but higher hit chance
     -- Pistols - 20
     -- Shotguns - 60 to 80
     -- Lower aimnum (to reduce spamming crits with god awful bloom) and higher player level means higher crit chance.
-    local critChanceModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.critChanceModifier"):getValue() 
-    local critChanceAdd = (Advanced_trajectory.aimnumBeforeShot*critChanceModifier) + (11-playerlevel)
+    local critChanceModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.critChanceModifier"):getValue()
+    local critChanceAdd = (Advanced_trajectory.aimnumBeforeShot*critChanceModifier) + (11 - playerlevel)
 
     -- higher = higher crit chance
-    local critIncreaseShotgun = getSandboxOptions():getOptionByName("Advanced_trajectory.critChanceModifierShotgunsOnly"):getValue() 
+    local critIncreaseShotgun = getSandboxOptions():getOptionByName("Advanced_trajectory.critChanceModifierShotgunsOnly"):getValue()
     if isHoldingShotgun then
         critChanceAdd = (critChanceAdd * 0) - (critIncreaseShotgun - playerlevel)
     end
-    if ZombRand(100+critChanceAdd) <= handWeapon:getCriticalChance() then
-        tablez[6]=tablez[6] * 2
+    if ZombRand(100 + critChanceAdd) <= handWeapon:getCriticalChance() then
+        tablez[6] = tablez[6] * 2
+        tablez[23] = 2
     end
 
 
@@ -2047,17 +2071,17 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
 
     -- tablez[5] is dirc
     local dirc1 = tablez[5]
-    tablez[5] = tablez[5]*360 / (2*math.pi)
+    tablez[5] = tablez[5] * 360 / (2 * math.pi)
 
     -- ballistic speed
-    tablez[12] = tablez[12] * getSandboxOptions():getOptionByName("Advanced_trajectory.bulletspeed"):getValue() 
+    tablez[12] = tablez[12] * getSandboxOptions():getOptionByName("Advanced_trajectory.bulletspeed"):getValue()
 
     -- bullet distance
     -- apparently chainsaws have different ranges, wow!
     if string.contains(handWeapon:getAmmoType() or "","FlameFuel") and string.contains(handWeapon:getName() or "","Chainsaw") then
         tablez[7] = tablez[7] * 1   -- nerf range of chainsaw
     else
-        tablez[7] = tablez[7] * getSandboxOptions():getOptionByName("Advanced_trajectory.bulletdistance"):getValue() 
+        tablez[7] = tablez[7] * getSandboxOptions():getOptionByName("Advanced_trajectory.bulletdistance"):getValue()
     end
 
     ------------------------------
@@ -2068,25 +2092,27 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         tablez[7] = tablez[7] + rangeMod
     end
 
-    local bulletnumber = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgunnum"):getValue() 
+    local bulletnumber = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgunnum"):getValue()
 
     local damagemutiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.ATY_damage"):getValue()  or 1
 
+    local pvpdamagemutiplier = getSandboxOptions():getOptionByName("Advanced_trajectory.ATY_pvpdamage"):getValue()  or 1
+
     -- NOTES: damage is multiplied by user setting (default 1)
     tablez[6] = tablez[6] * damagemutiplier
+    tablez[23] = tablez[23] * pvpdamagemutiplier
 
     local damageer = tablez[6]
 
-    -- print(tablez[5])
+    -- Print(tablez[5])
     if tablez[9] == "Shotgun" then
-
         local aimtable = {}
 
         for shot = 1, bulletnumber do
             local adirc
 
-            -- lower value means tighter spread
-            local numpi = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgundivision"):getValue() *0.7
+            -- Lower value means tighter spread
+            local numpi = getSandboxOptions():getOptionByName("Advanced_trajectory.shotgundivision"):getValue() * 0.7
 
             --------------------------------
             -----ANGLE ATTACHMENT EFFECT---
@@ -2096,48 +2122,42 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
                 numpi = numpi * angleMod
             end
 
+            adirc = dirc1 + ZombRandFloat(-math.pi * numpi, math.pi * numpi)
 
-            adirc = dirc1 +ZombRandFloat(-math.pi * numpi,math.pi*numpi)
-
-            tablez[3] = {math.cos(adirc), math.sin(adirc)}
-            tablez[4] = {tablez[4][1], tablez[4][2], tablez[4][3]}
+            tablez[3] = { math.cos(adirc), math.sin(adirc) }
+            tablez[4] = { tablez[4][1], tablez[4][2], tablez[4][3] }
             tablez[5] = adirc * 360 / (2 * math.pi)
-            tablez[20] = {tablez[4][1], tablez[4][2], tablez[4][3]}
-
-            tablez[6] = damageer / 4
-            
+            tablez[20] = { tablez[4][1], tablez[4][2], tablez[4][3] }
+            tablez[6] = damageer / 4 --damagemodifier
+            tablez[23] = tablez[23] / 4 --pvpdamagemodifier
 
             if isClient() then
                 tablez["nonsfx"] = 1
-                sendClientCommand("ATY_shotsfx","true",{tablez, character:getOnlineID()})
+                sendClientCommand("ATY_shotsfx", "true", { tablez, character:getOnlineID() })
             end
             tablez["nonsfx"] = nil
-            table.insert(Advanced_trajectory.table,Advanced_trajectory.twotable(tablez))
+            table.insert(Advanced_trajectory.table, Advanced_trajectory.twotable(tablez))
         end
     else
-
-        -- print(tablez[9])
+        -- Print(tablez[9])
         if tablez["wallcarmouse"] then
             tablez[7] = Advanced_trajectory.aimtexdistance - 1
         end
-        tablez[20] = {offx, offy, tablez[4][3]}
-        table.insert(Advanced_trajectory.table,Advanced_trajectory.twotable(tablez))
+        tablez[20] = { offx, offy, tablez[4][3] }
+        table.insert(Advanced_trajectory.table, Advanced_trajectory.twotable(tablez))
         if isClient() then
             tablez["nonsfx"] = 1
-            sendClientCommand("ATY_shotsfx","true",{tablez,character:getOnlineID()})
+            sendClientCommand("ATY_shotsfx", "true", { tablez, character:getOnlineID() })
         end
-
-        -- print(Advanced_trajectory.aimtexdistance)
-        
+        -- Print(Advanced_trajectory.aimtexdistance)
     end
-
 
     local recoilModifier = getSandboxOptions():getOptionByName("Advanced_trajectory.recoilModifier"):getValue()
     -- recoils range from 0.5 to 2.7
     Advanced_trajectory.aimnumBeforeShot = Advanced_trajectory.aimnum
     --character:Say("aimnumBeforeShot:  " .. Advanced_trajectory.aimnumBeforeShot)
-    
-    local recoil = handWeapon:getMaxDamage()*recoilModifier
+
+    local recoil = handWeapon:getMaxDamage() * recoilModifier
 
     -----------------------------
     --RECOIL ATTACHMENT EFFECT---
@@ -2152,10 +2172,9 @@ function Advanced_trajectory.OnWeaponSwing(character, handWeapon)
         recoil = recoil * 0.5
     end
 
-    Advanced_trajectory.aimnum = Advanced_trajectory.aimnum + ((14 - 0.8*playerlevel)*1.8 + recoil)
+    Advanced_trajectory.aimnum = Advanced_trajectory.aimnum + ((14 - 0.8 * playerlevel) * 1.8 + recoil)
     Advanced_trajectory.maxFocusCounter = 100
 
-    
 end
 
 Events.OnWeaponSwingHitPoint.Add(Advanced_trajectory.OnWeaponSwing)
@@ -2181,3 +2200,6 @@ function Advanced_trajectory.writePVPLog(args)
 		writeLog("ATROPVP", killLog)
 	end
 end
+
+
+
