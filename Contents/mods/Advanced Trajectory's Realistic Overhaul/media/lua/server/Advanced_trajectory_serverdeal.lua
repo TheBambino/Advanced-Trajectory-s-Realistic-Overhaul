@@ -3,8 +3,8 @@ if not isServer() then return end
 local function Advanced_trajectory_OnClientCommand(module, command, player, args)
 
     if module == "ATY_shotplayer" then
-
-        sendServerCommand(getPlayerByOnlineID(args[1]),"ATY_shotplayer", "true", args)
+		print("OnServerCommand: ATY_shotplayer - OnClientCommand")
+        sendServerCommand("ATY_shotplayer", "true", args)
 
     elseif module == "ATY_shotsfx" then
 
@@ -22,10 +22,12 @@ local function Advanced_trajectory_OnClientCommand(module, command, player, args
 
         sendServerCommand("ATY_killzombie", "true", args)
 
+    elseif  module == "ATY_killedplayer" then
+
+        sendServerCommand("ATY_killedplayer", "true", args)
+
     end
 
-
-	-- Your code here
 end
 
 Events.OnClientCommand.Add(Advanced_trajectory_OnClientCommand)
